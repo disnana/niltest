@@ -1,0 +1,7 @@
+---
+import DocContent from "@/components/DocContent.astro";
+import { pages } from "@/content/pages";
+export function getStaticPaths() { return pages.filter((page) => page.slug).map((page) => ({ params: { slug: page.slug }, props: { page } })); }
+const { page } = Astro.props;
+---
+<DocContent page={page} locale="ja" />

@@ -1,0 +1,6 @@
+---
+import DocContent from "@/components/DocContent.astro";
+import { pageBySlug } from "@/content/pages";
+const page = pageBySlug.get("")!;
+---
+<DocContent page={page} locale="ja" />

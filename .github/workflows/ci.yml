@@ -11,6 +11,7 @@ on:
       - "PYPI.md"
       - ".github/workflows/ci.yml"
       - ".github/release.yml"
+      - ".github/dependabot.yml"
   pull_request:
     paths:
       - "niltest/**"
@@ -20,10 +21,15 @@ on:
       - "PYPI.md"
       - ".github/workflows/ci.yml"
       - ".github/release.yml"
+      - ".github/dependabot.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: python-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   ruff:
@@ -73,6 +79,8 @@ jobs:
     name: Build distribution
     needs: [ruff, mypy, test]
     runs-on: ubuntu-latest
+    outputs:
+      slsa-subjects: ${{ steps.slsa-subjects.outputs.hashes }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -82,6 +90,10 @@ jobs:
       - run: python -m pip install build twine
       - run: python -m build
       - run: python -m twine check dist/*
+      - name: Record distribution digests for SLSA
+        id: slsa-subjects
+        shell: bash
+        run: echo "hashes=$(sha256sum dist/* | base64 -w0)" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: python-package
@@ -148,7 +160,7 @@ jobs:
   publish-pypi:
     name: Publish to PyPI
     if: needs.pypi-version.outputs.should-publish == 'true'
-    needs: [package, pypi-version]
+    needs: [package, pypi-version, attest-package, slsa-provenance]
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -161,11 +173,48 @@ jobs:
           name: python-package
           path: dist
       - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true
+          print-hash: true
+
+  attest-package:
+    name: Attest distributions
+    if: needs.pypi-version.outputs.should-publish == 'true'
+    needs: [package, pypi-version]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-package
+          path: dist
+      - name: Generate build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            dist/*.whl
+            dist/*.tar.gz
+
+  slsa-provenance:
+    name: Generate SLSA Build Level 3 provenance
+    if: needs.pypi-version.outputs.should-publish == 'true'
+    needs: [package, pypi-version]
+    permissions:
+      actions: read
+      contents: write
+      id-token: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: ${{ needs.package.outputs.slsa-subjects }}
 
   release-github:
     name: Create GitHub Release
     if: needs.pypi-version.outputs.should-publish == 'true'
-    needs: [package, pypi-version, publish-pypi]
+    needs: [package, pypi-version, publish-pypi, slsa-provenance]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -174,6 +223,11 @@ jobs:
         with:
           name: python-package
           path: dist
+      - name: Download SLSA provenance
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.slsa-provenance.outputs.provenance-name }}
+          path: provenance
       - name: Publish release, notes, and distributions
         uses: softprops/action-gh-release@v2
         with:
@@ -187,3 +241,4 @@ jobs:
           files: |
             dist/*.whl
             dist/*.tar.gz
+            provenance/*.intoto.jsonl

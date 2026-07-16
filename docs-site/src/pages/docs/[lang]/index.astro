@@ -1,0 +1,9 @@
+---
+import DocContent from "@/components/DocContent.astro";
+import { pageBySlug } from "@/content/pages";
+import { locales } from "@/locales";
+export function getStaticPaths() { return locales.filter((locale) => locale !== "ja").map((lang) => ({ params: { lang }, props: { lang } })); }
+const { lang } = Astro.props;
+const page = pageBySlug.get("")!;
+---
+<DocContent page={page} locale={lang} />

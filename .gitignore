@@ -11,5 +11,5 @@ build/
 docs-site/node_modules/
 docs-site/.astro/
 docs-site/dist/
-docs/
+/docs/
 docs-dist/

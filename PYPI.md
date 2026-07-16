@@ -98,6 +98,28 @@ With `PRODUCTION=true`, this returns the original function: no wrapper and no `i
 
 Japanese and English are built in. niltest detects the OS locale, falls back to English, and exposes `register_locale()` plus a validated template for additional languages.
 
+## Verifying release provenance
+
+Official wheel and source distributions are published through PyPI Trusted Publishing and carry Sigstore digital attestations. GitHub Releases contain the same files with GitHub build-provenance attestations tied to the source commit and CI workflow. An isolated, trusted SLSA generator also produces non-forgeable SLSA Build Level 3 provenance for every distribution.
+
+After downloading a release asset, verify its origin with the GitHub CLI:
+
+```bash
+gh attestation verify niltest-*.whl --repo disnana/niltest
+gh attestation verify niltest-*.tar.gz --repo disnana/niltest
+```
+
+For strict SLSA verification, download the matching `.intoto.jsonl` file from the GitHub Release and use `slsa-verifier`:
+
+```bash
+slsa-verifier verify-artifact niltest-*.whl \
+  --provenance-path multiple.intoto.jsonl \
+  --source-uri github.com/disnana/niltest \
+  --source-branch main
+```
+
+Verification confirms provenance; it does not replace reviewing the package or its dependencies for your use case.
+
 ## 日本語
 
 niltestは、Python関数の先頭に代表的な入力と期待値を書くことで、同じ定義を「読める仕様」「開発用モック」「実装チェック」に再利用する軽量ライブラリです。
