@@ -120,6 +120,10 @@ niltest inspect your_package.services --format markdown # reviews and design doc
 
 `--json` remains a compatibility alias for `--format json`.
 
+The repository includes an [inspectable example](https://github.com/disnana/niltest/blob/main/examples/08_inspect_report.py)
+with [English](https://github.com/disnana/niltest/blob/main/examples/08_inspect_report.result.md)
+and [Japanese](https://github.com/disnana/niltest/blob/main/examples/08_inspect_report.result.ja.md) Markdown reports.
+
 ## Pytest integration and exception specifications
 
 Version 1.2 exposes each niltest case as an individual pytest item. The plugin is
@@ -202,15 +206,6 @@ slsa-verifier verify-artifact niltest-*.whl \
 
 Verification confirms provenance; it does not replace reviewing the package or its dependencies for your use case.
 
-## 日本語
-
-niltestは、Python関数の先頭に代表的な入力と期待値を書くことで、同じ定義を「読める仕様」「開発用モック」「実装チェック」に再利用する軽量ライブラリです。
-
-```bash
-python -m pip install niltest
-niltest run your_package.specs --language ja
-```
-
-日本語の詳しい使い方、モック・非同期関数・バリデータ・本番モード・応用例は[公式ドキュメント](https://niltest.disnana.com/docs/)で確認できます。
+For Japanese documentation, see the [Japanese README](https://github.com/disnana/niltest/blob/main/README.ja.md) and [Japanese docs](https://niltest.disnana.com/docs/).
 
 MIT © 2026 Disnana

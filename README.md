@@ -1,123 +1,98 @@
 # niltest
+
 [![PyPI version](https://img.shields.io/pypi/v/niltest.svg)](https://pypi.org/project/niltest/)
 [![Python versions](https://img.shields.io/pypi/pyversions/niltest.svg)](https://pypi.org/project/niltest/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Downloads](https://static.pepy.tech/badge/niltest)](https://pepy.tech/project/niltest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Tests](https://github.com/disnana/niltest/actions/workflows/ci.yml/badge.svg)](https://github.com/disnana/niltest/actions/workflows/ci.yml)
 
-> Executable specifications, mocks, and lightweight tests—next to the Python function they describe.
+> Executable specifications, fixed development mocks, and lightweight checks—next to the Python function they describe.
 
-[日本語](#日本語) · [English](#english) · [Documentation](https://niltest.disnana.com/docs/) · [MIT License](./LICENSE)
+[日本語 README](./README.ja.md) · [Documentation](https://niltest.disnana.com/docs/en/) · [PyPI](https://pypi.org/project/niltest/) · [License](./LICENSE)
 
-## 日本語
+niltest keeps representative behavior beside the implementation. One case can serve as readable documentation, a fixed mock in development, and a check against the real implementation. It supports Python 3.10+ on Windows, macOS, and Linux.
 
-通常、仕様・モック・テストは別々のファイルに散らばります。niltest は、関数先頭の `if expect:` ブロックに実行可能な仕様例をまとめます。同じケースがエディタ上の説明、開発用モック、実装チェックの3つに使われます。
+## Install
+
+```bash
+# Active virtual environment
+pip install niltest
+
+# Windows
+python -m pip install niltest
+
+# Ubuntu / macOS
+python3 -m pip install niltest
+```
+
+## A complete example
 
 ```python
 import niltest
 from niltest import Mode, expect, scenario
 
-niltest.configure(mode=Mode.MOCK)  # @scenarioより前に指定
+niltest.configure(mode=Mode.MOCK)  # Set this before importing decorated modules.
 
-@scenario("割引計算")
-def price(total: int, member: bool = False) -> int:
+@scenario("Shipping fee")
+def shipping_fee(subtotal: int, premium: bool = False) -> int:
     if expect:
         expect.case(
-            "会員は10%引き",
-            given={"total": 1_000, "member": True},
-            returns=900,
+            "Premium members ship free",
+            given={"subtotal": 1_000, "premium": True},
+            returns=0,
         )
-    return int(total * 0.9) if member else total
+    return 0 if premium or subtotal >= 5_000 else 500
 
-assert price(1_000, member=True) == 900
+assert shipping_fee(1_000, premium=True) == 0
 
 niltest.configure(mode=Mode.TEST)
-result = niltest.run_tests(price)
-assert result.success
+assert niltest.run_tests(shipping_fee).success
 ```
 
-### 3分で試す
+## Modes and setup
 
-Python 3.10以降のWindows、macOS、Linuxに対応しています。
-
-```bash
-git clone https://github.com/disnana/niltest.git
-cd niltest
-python -m venv .venv
-```
-
-仮想環境を有効化します。
-
-```bash
-# Windows PowerShell
-.venv\Scripts\Activate.ps1
-
-# macOS / Linux
-source .venv/bin/activate
-```
-
-インストールしてデモを実行します。仮想環境を有効化済みなら、通常は次のコマンドを全OSで利用できます。
-
-```bash
-pip install -e ".[dev]"
-niltest run examples.demo --language ja
-python -m pytest
-```
-
-Pythonを明示する場合、Windowsでは `python -m pip install -e ".[dev]"`、Ubuntu・macOSでは `python3 -m pip install -e ".[dev]"` を使用してください。環境によっては `pip3 install` も利用できます。
-
-### 何が新しいか
-
-- 仕様を実装のすぐ隣で読める
-- 固定値、型、dataclass、Pydantic、バリデータ関数を同じAPIで検証
-- 同期・非同期関数に対応
-- CLIの終了コードとJSON結果をCIから利用可能
-- OS言語を自動検出し、日本語・英語を標準搭載
-- `register_locale()` と翻訳テンプレートで言語を拡張可能
-- 未指定では安全な `production` モード。`NILTEST_MODE=mock` または `test` を明示して開発機能を有効化
-
-Pythonから設定する場合は、補完と型チェックが効く `configure(mode=Mode.TEST)`、`Mode.MOCK`、`Mode.PRODUCTION` を推奨します。短い `configure(mode="test")` 形式も互換のため引き続き利用できます。
-
-> niltest は pytest の代替ではありません。小さな実行可能仕様をコードの近くに置き、pytestやCIを補完するツールです。
-
-### 型付き仕様とPydantic（v1.1）
-
-`conforms_to()` はPydanticの `TypeAdapter` を使い、戻り値を任意の型注釈に照合します。
-`BaseModel`、`list[User]`、Union、`Annotated` の制約に対応します。仕様ケースを実行すると、
-`given` の辞書は関数の型注釈に従って検証され、Pydanticモデルなどへ正規化されてから関数へ渡されます。
-通常の関数呼び出しやproductionモードの入力には介入しません。
-
-```bash
-pip install "niltest[pydantic]"
-```
+`production` is the safe default. It returns the original function without a niltest wrapper. Choose `test` to run cases against the implementation, or `mock` to return fixed values for matching cases.
 
 ```python
-from pydantic import BaseModel
-from niltest import case, conforms_to, docs, scenario
+from niltest import Mode, configure
 
-class User(BaseModel):
-    id: int
-    name: str
-
-@scenario("ユーザー取得")
-@docs(case("存在する", given={"user_id": 1}, returns=conforms_to(User)))
-def fetch_user(user_id: int) -> dict[str, object]:
-    return {"id": user_id, "name": "Alice"}
+configure(mode=Mode.TEST)   # Recommended: completion and type checking
+configure(mode="test")      # Supported for compatibility and brevity
 ```
 
-大きなモジュールでは、関数シグネチャ、入出力型、ケース、モック可能性、入力エラーを一覧できます。`your_package.services` は、`your_package/services.py` のようにPythonがimportできるモジュールパスへ置き換えます。inspectは対象モジュールを読み込んで登録済みの`@scenario`を表示するだけで、仕様ケースを実行しません。
+Set a development mode before importing the module that contains `@scenario`. You can also set `NILTEST_MODE=test` or `NILTEST_MODE=mock` before starting Python.
+
+## Expectations and typed inputs
+
+`returns` accepts plain values, dataclass instances, types, Pydantic-backed `conforms_to()` expectations, and validator functions. Install `niltest[pydantic]` to validate and normalize typed case inputs with Pydantic.
+
+```python
+from niltest import case, docs, scenario
+
+@scenario("Withdraw funds")
+@docs(case("insufficient funds", given={"balance": 100, "amount": 150}, raises=ValueError, match="insufficient"))
+def withdraw(balance: int, amount: int) -> int:
+    if amount > balance:
+        raise ValueError("insufficient funds")
+    return balance - amount
+```
+
+Use exactly one of `returns` or `raises`. Exception cases verify the real implementation and never act as mocks.
+
+## Inspect specifications
+
+`inspect` imports a module and lists its registered scenarios; it does not execute cases. Replace `your_package.services` with an importable module path such as `your_package/services.py`.
 
 ```bash
-niltest inspect your_package.services --language ja
-niltest inspect your_package.services --format json
-niltest inspect your_package.services --format markdown
+niltest inspect your_package.services                 # terminal text
+niltest inspect your_package.services --format json   # CI and tools
+niltest inspect your_package.services --format markdown # review documents
 ```
 
-既定の`text`は端末での確認向け、`json`はCIや他ツール向け、`markdown`はレビュー・Issue・設計資料へ貼り付ける用途です。従来の`--json`も`--format json`と同じ意味で利用できます。
+The repository includes an [inspectable example](./examples/08_inspect_report.py), its [English Markdown report](./examples/08_inspect_report.result.md), and a [Japanese annotated report](./examples/08_inspect_report.result.ja.md). `--json` remains an alias for `--format json`.
 
-### pytest連携と例外仕様（v1.2）
+## Pytest and CI
 
-pytestを品質保証基盤として維持したまま、niltestの各ケースを個別のpytest itemとして実行できます。`--niltest`を付けない通常実行には介入しません。
+niltest complements pytest rather than replacing it. With `--niltest`, each declared case is collected as an independent pytest item and participates in normal reports, JUnit XML, and coverage. Without the flag, the plugin is inert.
 
 ```bash
 pytest --niltest --niltest-module=your_package.specs
@@ -129,69 +104,35 @@ pytest --niltest --junitxml=report.xml --cov=your_package
 niltest_modules = ["your_package.specs"]
 ```
 
-期待する例外とメッセージは`raises`と`match`で宣言します。`returns`と`raises`はどちらか一方だけを指定します。
+## Zero-cost production path
 
-```python
-@scenario("出金")
-@docs(case(
-    "残高不足",
-    given={"balance": 100, "amount": 150},
-    raises=ValueError,
-    match="残高不足",
-))
-def withdraw(balance: int, amount: int) -> int:
-    if amount > balance:
-        raise ValueError("残高不足")
-    return balance - amount
-```
-
-```bash
-niltest inspect your_package.specs --format markdown
-```
-
-### 呼び出し時コストをゼロにする宣言型API
-
-既存の `if expect:` はそのまま使えます。関数内の条件分岐も残したくない場合は、ケースを `@docs` で囲みます。
+For declaration-style specifications outside a function body, use `@docs`. In production mode, `@scenario` returns the original function with no runtime wrapper or niltest branch.
 
 ```python
 from niltest import case, docs, scenario
 
-@scenario("配送料")
-@docs(case("プレミアム会員", given={"premium": True}, returns=0))
+@scenario("Shipping fee")
+@docs(case("premium", given={"premium": True}, returns=0))
 def shipping_fee(premium: bool) -> int:
     return 0 if premium else 500
 ```
 
-既定の `NILTEST_MODE=production` では `@scenario` が元関数をそのまま返します。関数の呼び出し時にniltestのラッパーも条件分岐もありません。`mock` と `test` は、対象モジュールをimportする前に明示してください。
+## Localization
 
-本番経路を実測する場合は、プレーン関数・従来の `if expect:` API・宣言型 `@docs` APIを比較する同梱ベンチマークを実行できます。
+Japanese and English are built in. niltest detects the operating-system locale and falls back to English. Add languages with `register_locale()` and the validated locale template.
 
-```bash
-python benchmark_production.py
-```
+## Release provenance
 
-## English
-
-Tests, mock definitions, and documentation often drift across separate files. niltest turns examples declared at the top of a function into all three: readable specifications, fixed development mocks, and executable implementation checks.
-
-### Quick start
-
-The project supports Python 3.10+ on Windows, macOS, and Linux. Follow the setup commands above, then run:
+PyPI distributions use Trusted Publishing and carry Sigstore attestations. GitHub Releases contain build-provenance attestations, and every distribution has SLSA Build Level 3 provenance.
 
 ```bash
-niltest run examples.demo --language en
-niltest run examples.demo --json
+gh attestation verify niltest-*.whl --repo disnana/niltest
+gh attestation verify niltest-*.tar.gz --repo disnana/niltest
 ```
-
-The command exits with `0` when every case passes, `1` for specification failures, and `2` for usage or import errors.
-
-See the [English documentation](https://niltest.disnana.com/docs/en/), [API reference](https://niltest.disnana.com/docs/en/api/), and [localization guide](https://niltest.disnana.com/docs/en/localization/).
 
 ## Built with Codex and GPT-5.6
 
-Codex and GPT-5.6 were used as an engineering partner across the core implementation: repository audit, API design, async defect diagnosis, localization architecture, CLI/result modeling, tests, packaging, and bilingual documentation. Important decisions remained reviewable in the working session and were validated against executable tests rather than accepted as generated text.
-
-This workflow compressed a sequence that normally requires separate architecture, implementation, QA, packaging, and documentation passes into one continuous loop: inspect → propose → patch → run tests → inspect failures → refine.
+Codex and GPT-5.6 supported repository audit, API design, implementation, test diagnosis, packaging, localization, and documentation. Changes were reviewed through executable tests and CI.
 
 ## License
 
