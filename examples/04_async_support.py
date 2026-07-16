@@ -15,7 +15,7 @@ niltest.configure(mode="mock")
 
 
 @scenario("非同期データ取得 API")
-async def fetch_remote_data(endpoint: str) -> dict:
+async def fetch_remote_data(endpoint: str) -> dict[str, str | int]:
     if expect:
         expect.case(
             "正常系: ユーザーデータ",
@@ -37,7 +37,7 @@ async def fetch_remote_data(endpoint: str) -> dict:
     return {"error": "Not Found"}
 
 
-async def main():
+async def main() -> None:
     print("=== モックモード実行 ===")
     # モックなので asyncio.sleep は呼ばれず一瞬で返る
     result1 = await fetch_remote_data("/users/1")

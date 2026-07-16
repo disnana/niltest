@@ -3,12 +3,13 @@ from __future__ import annotations
 import asyncio
 import functools
 import inspect
+import re
 from collections.abc import Callable
 from typing import Any, TypeVar
 
 from . import _config
-from ._case import _Case
-from ._compare import can_use_as_mock, returns_match
+from ._case import ExceptionTypes, _Case
+from ._compare import can_use_as_mock, format_returns, returns_match
 from ._docgen import build_docstring
 from ._expect import _local, _MockReturn, expect
 from ._i18n import translate
@@ -19,6 +20,11 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 # @scenario でデコレートされた全関数を追跡するレジストリ
 _registry: dict[str, Any] = {}
+
+
+def format_exception_types(exceptions: ExceptionTypes) -> str:
+    values = exceptions if isinstance(exceptions, tuple) else (exceptions,)
+    return " | ".join(exception.__name__ for exception in values)
 
 
 def scenario(title: str) -> Callable[[F], F]:
@@ -42,7 +48,11 @@ def scenario(title: str) -> Callable[[F], F]:
             if _config._MODE != "mock":
                 return
             for declared in declared_cases:
-                if declared.given == call_kwargs and can_use_as_mock(declared.returns):
+                if (
+                    declared.raises is None
+                    and declared.given == call_kwargs
+                    and can_use_as_mock(declared.returns)
+                ):
                     raise _MockReturn(declared.returns)
 
         def _collect_all_cases(*args: Any, **kwargs: Any) -> None:
@@ -150,6 +160,73 @@ def scenario(title: str) -> Callable[[F], F]:
                     _local.pop(call_token)
                     expect._pop_pending(pending_token)
 
+        function_name = f"{func.__module__}.{func.__qualname__}"
+
+        def _case_result(
+            case: _Case,
+            status: str,
+            reason: str = "",
+            *,
+            actual: str = "",
+        ) -> CaseResult:
+            if case.raises is not None:
+                exception_types = case.raises if isinstance(case.raises, tuple) else (case.raises,)
+                names = " | ".join(exception.__name__ for exception in exception_types)
+                expected = f"raises {names}"
+                if case.match is not None:
+                    expected += f" matching {case.match!r}"
+            else:
+                expected = format_returns(case.returns)
+            return CaseResult(
+                case.name,
+                status,
+                reason,
+                scenario=title,
+                function=function_name,
+                given=dict(case.given),
+                expected=expected,
+                actual=actual,
+                source=case.source,
+            )
+
+        def _execute_case(case: _Case) -> CaseResult:
+            prepared_given, input_issues = prepare_case_inputs(func, case.given)
+            if input_issues:
+                reason = "invalid case input: " + "; ".join(input_issues)
+                return _case_result(case, "error", reason)
+
+            try:
+                if is_async:
+                    actual = _run_sync(func(**prepared_given))
+                else:
+                    actual = func(**prepared_given)
+            except Exception as error:
+                actual_exception = f"{type(error).__name__}: {error}"
+                if case.raises is None:
+                    return _case_result(case, "error", actual_exception, actual=actual_exception)
+                if not isinstance(error, case.raises):
+                    reason = (
+                        f"expected {format_exception_types(case.raises)}, "
+                        f"but raised {type(error).__name__}: {error}"
+                    )
+                    return _case_result(case, "failed", reason, actual=actual_exception)
+                if case.match is not None and re.search(case.match, str(error)) is None:
+                    reason = f"exception message did not match {case.match!r}: {str(error)!r}"
+                    return _case_result(case, "failed", reason, actual=actual_exception)
+                return _case_result(case, "passed", actual=actual_exception)
+
+            if case.raises is not None:
+                reason = f"expected {format_exception_types(case.raises)}, but returned {actual!r}"
+                return _case_result(case, "failed", reason, actual=repr(actual))
+
+            ok, reason = returns_match(actual, case.returns)
+            return _case_result(
+                case,
+                "passed" if ok else "failed",
+                reason,
+                actual=repr(actual),
+            )
+
         # ─── 自動テスト実行用メソッドをラッパーに付与 ───
         def run_tests() -> ScenarioResult:
             nonlocal cases
@@ -170,35 +247,16 @@ def scenario(title: str) -> Callable[[F], F]:
 
             try:
                 for c in cases:
-                    prepared_given, input_issues = prepare_case_inputs(func, c.given)
-                    if input_issues:
+                    result = _execute_case(c)
+                    results.append(result)
+                    if result.passed:
+                        passed += 1
+                    else:
                         failed += 1
-                        reason = "invalid case input: " + "; ".join(input_issues)
-                        results.append(CaseResult(c.name, "error", reason))
-                        print(f"  [ERROR] {c.name}: {reason}")
-                        continue
-                    try:
-                        if is_async:
-                            actual = _run_sync(func(**prepared_given))
-                        else:
-                            actual = func(**prepared_given)
-
-                        ok, reason = returns_match(actual, c.returns)
-                        status = "PASS" if ok else "FAIL"
-                        if ok:
-                            passed += 1
-                            results.append(CaseResult(c.name, "passed"))
-                        else:
-                            failed += 1
-                            results.append(CaseResult(c.name, "failed", reason))
-                        print(f"  [{status}] {c.name}")
-                        if not ok:
-                            print(f"         {reason}")
-                    except Exception as e:
-                        failed += 1
-                        reason = f"{type(e).__name__}: {e}"
-                        results.append(CaseResult(c.name, "error", reason))
-                        print(f"  [ERROR] {c.name}: {e}")
+                    marker = "PASS" if result.passed else result.status.upper()
+                    print(f"  [{marker}] {c.name}")
+                    if result.reason:
+                        print(f"         {result.reason}")
             finally:
                 _config._MODE = prev_mode
             print(f"\n  {translate(_config._LANGUAGE, 'result', passed=passed, failed=failed)}")
@@ -215,6 +273,7 @@ def scenario(title: str) -> Callable[[F], F]:
         wrapper.__niltest_title__ = title  # type: ignore[attr-defined]
         wrapper.__niltest_original__ = func  # type: ignore[attr-defined]
         wrapper.__niltest_get_cases__ = get_cases  # type: ignore[attr-defined]
+        wrapper.__niltest_run_case__ = _execute_case  # type: ignore[attr-defined]
 
         if declared_cases:
             wrapper.__doc__ = build_docstring(func.__doc__ or "", title, declared_cases)

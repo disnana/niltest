@@ -4,6 +4,16 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 
+def _json_safe(value: Any) -> Any:
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(item) for item in value]
+    return repr(value)
+
+
 @dataclass(frozen=True)
 class CaseResult:
     """Result of one executable specification case."""
@@ -11,13 +21,21 @@ class CaseResult:
     name: str
     status: str
     reason: str = ""
+    scenario: str = ""
+    function: str = ""
+    given: dict[str, Any] = field(default_factory=dict)
+    expected: str = ""
+    actual: str = ""
+    source: str = ""
 
     @property
     def passed(self) -> bool:
         return self.status == "passed"
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        value = _json_safe(asdict(self))
+        assert isinstance(value, dict)
+        return value
 
 
 @dataclass(frozen=True)

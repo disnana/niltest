@@ -8,6 +8,7 @@ MESSAGES = {
     "scenario": "TODO",
     "description": "TODO",
     "returns": "TODO",
+    "raises": "TODO",
     "type_check_only": "TODO",
     "validator": "TODO",
     "no_cases": "TODO",

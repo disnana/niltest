@@ -4,7 +4,11 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field
 
+import niltest
 from niltest import case, conforms_to, docs, scenario
+
+if __name__ == "__main__":
+    niltest.configure(mode="test")
 
 
 class CreateUser(BaseModel):
@@ -30,7 +34,4 @@ def create_user(payload: CreateUser) -> dict[str, object]:
 
 
 if __name__ == "__main__":
-    import niltest
-
-    niltest.configure(mode="test")
     niltest.run_tests(create_user)

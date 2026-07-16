@@ -10,7 +10,7 @@ from contextlib import redirect_stdout
 from typing import Any
 
 from . import __version__, configure, run_tests
-from ._inspect import format_inspection, inspect_scenarios
+from ._inspect import format_inspection, format_markdown, inspect_scenarios
 from ._scenario import _registry
 
 
@@ -50,7 +50,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     inspect_command.add_argument("modules", nargs="+", help="Import path to inspect")
     inspect_command.add_argument("--language", "-l", help="Output locale")
-    inspect_command.add_argument("--json", action="store_true", help="Print JSON")
+    inspect_command.add_argument(
+        "--format",
+        choices=("text", "json", "markdown"),
+        default="text",
+        help="Output format (default: text)",
+    )
+    inspect_command.add_argument(
+        "--json", action="store_true", help="Deprecated alias for --format json"
+    )
     return parser
 
 
@@ -77,8 +85,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
     if args.command == "inspect":
         report = inspect_scenarios(targets)
-        if args.json:
+        output_format = "json" if args.json else args.format
+        if output_format == "json":
             print(json.dumps(report, ensure_ascii=False, indent=2, default=repr))
+        elif output_format == "markdown":
+            print(format_markdown(report), end="")
         else:
             print(format_inspection(report))
         return 0 if report["valid"] else 1

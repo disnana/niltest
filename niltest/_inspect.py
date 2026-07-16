@@ -9,6 +9,16 @@ from ._i18n import translate
 from ._typing import format_type_hint, validate_case_inputs
 
 
+def _case_expectation(case: Any) -> tuple[str, str]:
+    if case.raises is None:
+        return "returns", format_returns(case.returns)
+    exceptions = case.raises if isinstance(case.raises, tuple) else (case.raises,)
+    value = "raises " + " | ".join(exception.__name__ for exception in exceptions)
+    if case.match is not None:
+        value += f" matching {case.match!r}"
+    return "raises", value
+
+
 def inspect_scenario(target: Any) -> dict[str, Any]:
     """Build a machine-readable description of one registered scenario."""
     original = getattr(target, "__niltest_original__", target)
@@ -38,15 +48,18 @@ def inspect_scenario(target: Any) -> dict[str, Any]:
     case_descriptions = []
     for case in cases:
         issues = validate_case_inputs(original, case.given)
+        expectation_kind, expectation = _case_expectation(case)
         case_descriptions.append(
             {
                 "name": case.name,
                 "description": case.desc,
                 "given": case.given,
-                "returns": format_returns(case.returns),
-                "mockable": can_use_as_mock(case.returns),
+                "returns": expectation,
+                "expectation_kind": expectation_kind,
+                "mockable": case.raises is None and can_use_as_mock(case.returns),
                 "valid": not issues,
                 "issues": list(issues),
+                "source": case.source,
             }
         )
 
@@ -104,3 +117,45 @@ def format_inspection(report: dict[str, Any]) -> str:
                 lines.append(f"      {issue}")
         lines.append("")
     return "\n".join(lines).rstrip()
+
+
+def format_markdown(report: dict[str, Any]) -> str:
+    """Format an inspection report as portable Markdown documentation."""
+    lines = ["# niltest specification report", ""]
+    for scenario in report["scenarios"]:
+        lines.extend(
+            [
+                f"## `{scenario['signature']}`",
+                "",
+                f"**Scenario:** {scenario['title']}",
+                "",
+                f"**Returns:** `{scenario['returns']}`",
+                "",
+                "| Case | Given | Expectation | Mockable | Valid | Source |",
+                "| --- | --- | --- | --- | --- | --- |",
+            ]
+        )
+        for case in scenario["cases"]:
+            issues = "; ".join(case["issues"])
+            validity = "yes" if case["valid"] else f"no — {issues}"
+            lines.append(
+                "| "
+                + " | ".join(
+                    _markdown_cell(value)
+                    for value in (
+                        case["name"],
+                        repr(case["given"]),
+                        case["returns"],
+                        "yes" if case["mockable"] else "no",
+                        validity,
+                        case["source"] or "—",
+                    )
+                )
+                + " |"
+            )
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _markdown_cell(value: Any) -> str:
+    return str(value).replace("|", "\\|").replace("\n", "<br>")

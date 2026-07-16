@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from contextvars import ContextVar, Token
-from typing import Any
+from typing import Any, overload
 
 from . import _config
-from ._case import _Case
+from ._case import MISSING, ExceptionTypes, _Case, _Missing, caller_location
 from ._compare import can_use_as_mock
 
 
@@ -80,6 +80,7 @@ class Expect:
     # ------------------------------------------------------------------
     # 仕様ケースの登録
     # ------------------------------------------------------------------
+    @overload
     def case(
         self,
         name: str,
@@ -87,6 +88,31 @@ class Expect:
         desc: str = "",
         given: dict[str, Any],
         returns: Any,
+        raises: None = None,
+        match: None = None,
+    ) -> None: ...
+
+    @overload
+    def case(
+        self,
+        name: str,
+        *,
+        desc: str = "",
+        given: dict[str, Any],
+        returns: _Missing = MISSING,
+        raises: ExceptionTypes,
+        match: str | None = None,
+    ) -> None: ...
+
+    def case(
+        self,
+        name: str,
+        *,
+        desc: str = "",
+        given: dict[str, Any],
+        returns: Any = MISSING,
+        raises: ExceptionTypes | None = None,
+        match: str | None = None,
     ) -> None:
         """
         仕様ケースを1件登録します。
@@ -96,16 +122,28 @@ class Expect:
             desc:    ケースの説明（任意）
             given:   代表的な入力引数を kwargs 形式で指定
             returns: そのときに期待する戻り値
+            raises:  期待する例外型
+            match:   例外メッセージに含まれる正規表現
         """
         if _config.is_production():
             return
 
-        c = _Case(name, desc=desc, given=given, returns=returns)
+        source_file, source_line = caller_location()
+        c = _Case(
+            name,
+            desc=desc,
+            given=given,
+            returns=returns,
+            raises=raises,
+            match=match,
+            source_file=source_file,
+            source_line=source_line,
+        )
         self._pending.append(c)
 
         # MOCK モード: 現在の呼び出し引数と given が一致したら即返却
         # __DOC_SCAN__ モードや、callable/型のみ returns はモックとして使えないのでスキップ
-        if _config._MODE == "mock" and can_use_as_mock(returns):
+        if raises is None and _config._MODE == "mock" and can_use_as_mock(returns):
             ctx: dict[str, Any] | None = _local.call_kwargs
             if ctx is not None and ctx == given:
                 raise _MockReturn(returns)

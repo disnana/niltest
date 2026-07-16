@@ -18,7 +18,7 @@ niltest.configure(mode="mock")
 
 
 @scenario("トークン生成")
-def create_token(user_id: int) -> dict:
+def create_token(user_id: int) -> dict[str, str | int]:
     if expect:
         # lambda をバリデータとして使うケース
         expect.case(

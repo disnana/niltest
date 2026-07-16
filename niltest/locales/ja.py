@@ -2,6 +2,7 @@ MESSAGES = {
     "scenario": "Scenario",
     "description": "説明",
     "returns": "戻り値",
+    "raises": "例外",
     "type_check_only": "型チェックのみ",
     "validator": "validator",
     "no_cases": "ケースを収集できませんでした。",

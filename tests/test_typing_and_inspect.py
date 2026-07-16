@@ -184,3 +184,24 @@ def test_inspect_cli_localizes_human_output(tmp_path, monkeypatch, capsys) -> No
     assert "シナリオ: 検索" in output
     assert "戻り値: int" in output
     assert "ケース: 1 (モック可能: 1)" in output
+
+
+def test_inspect_cli_emits_markdown(tmp_path, monkeypatch, capsys) -> None:
+    module = tmp_path / "markdown_inspect_example.py"
+    module.write_text(
+        "from niltest import case, docs, scenario\n"
+        "@scenario('Lookup')\n"
+        "@docs(case('missing', given={'value': 0}, raises=ValueError))\n"
+        "def lookup(value: int) -> int:\n"
+        "    raise ValueError('missing')\n",
+        encoding="utf-8",
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    exit_code = main(["inspect", "markdown_inspect_example", "--format", "markdown"])
+    output = capsys.readouterr().out
+    assert exit_code == 0
+    assert output.startswith("# niltest specification report")
+    assert "| Case | Given | Expectation | Mockable | Valid | Source |" in output
+    assert "raises ValueError" in output
+    assert "markdown_inspect_example.py:" in output

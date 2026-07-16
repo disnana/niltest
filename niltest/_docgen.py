@@ -26,9 +26,16 @@ def build_docstring(original_doc: str, title: str, cases: list[_Case]) -> str:
             lines.append(f"    {translate(_config._LANGUAGE, 'description'):<10}: {c.desc}")
         for k, v in c.given.items():
             lines.append(f"    {k:<10}: {v!r}")
-        lines.append(
-            f"    -> {translate(_config._LANGUAGE, 'returns')}: {format_returns(c.returns)}"
-        )
+        if c.raises is None:
+            label = translate(_config._LANGUAGE, "returns")
+            expectation = format_returns(c.returns)
+        else:
+            label = translate(_config._LANGUAGE, "raises")
+            exceptions = c.raises if isinstance(c.raises, tuple) else (c.raises,)
+            expectation = " | ".join(exception.__name__ for exception in exceptions)
+            if c.match is not None:
+                expectation += f" ({c.match!r})"
+        lines.append(f"    -> {label}: {expectation}")
         lines.append("")
 
     return "\n".join(lines)

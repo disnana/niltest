@@ -2,6 +2,7 @@ MESSAGES = {
     "scenario": "Scenario",
     "description": "Description",
     "returns": "Returns",
+    "raises": "Raises",
     "type_check_only": "type check only",
     "validator": "validator",
     "no_cases": "could not collect any cases.",
