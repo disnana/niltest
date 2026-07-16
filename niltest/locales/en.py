@@ -1,6 +1,9 @@
 MESSAGES = {
-    "scenario": "Scenario", "description": "Description", "returns": "Returns",
-    "type_check_only": "type check only", "validator": "validator",
+    "scenario": "Scenario",
+    "description": "Description",
+    "returns": "Returns",
+    "type_check_only": "type check only",
+    "validator": "validator",
     "no_cases": "could not collect any cases.",
     "result": "Result: {passed} passed / {failed} failed",
     "value_mismatch": "Value mismatch:\n  expected={expected!r}\n  actual  ={actual!r}",

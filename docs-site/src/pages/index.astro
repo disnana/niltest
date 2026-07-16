@@ -1,0 +1,61 @@
+---
+import "@/styles/global.css";
+import CodeBlock from "@/components/CodeBlock.astro";
+
+const example = `from niltest import case, docs, scenario
+
+@scenario("配送料")
+@docs(
+    case("プレミアム会員", given={"premium": True}, returns=0),
+)
+def shipping_fee(premium: bool) -> int:
+    return 0 if premium else 500`;
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="仕様・テスト・モック・ドキュメントをひとつにする、ゼロ依存のPython開発者ツール。" />
+    <link rel="canonical" href="https://niltest.disnana.com/" />
+    <title>niltest — 実装のそばに、動く仕様を。</title>
+  </head>
+  <body class="landing-body">
+    <header class="topbar landing-nav">
+      <a class="brand" href="/"><span class="brand-mark">nil</span>test</a>
+      <nav aria-label="メインナビゲーション">
+        <a href="/docs/">ドキュメント</a><a href="/docs/en/">JA / EN</a><a class="github-link" href="https://github.com/disnana/niltest">GitHub</a>
+      </nav>
+    </header>
+    <main class="landing-main">
+      <section class="landing-hero">
+        <div>
+          <p class="eyebrow">PYTHON · ZERO DEPENDENCIES · MIT</p>
+          <h1>実装のそばに、<br /><span>動く仕様</span>を。</h1>
+          <p>仕様、テスト、モック、ドキュメントを一度だけ書く。小さく始めて、そのままチームの共通言語へ育てられます。</p>
+          <div class="hero-actions"><a class="primary-button" href="/docs/getting-started/">5分で始める →</a><button class="install-command" data-copy-install>pip install niltest <span>コピー</span></button></div>
+          <div class="landing-stats"><span><strong>0</strong> runtime deps</span><span><strong>2</strong> API styles</span><span><strong>3</strong> modes</span></div>
+        </div>
+        <CodeBlock code={example} locale="ja" />
+      </section>
+      <section class="landing-features" aria-label="主な機能">
+        <article><span>01</span><h2>仕様がコードから離れない</h2><p>入力と期待値を関数のそばに宣言。実装が変われば、古い仕様をすぐ発見できます。</p></article>
+        <article><span>02</span><h2>そのままテストとモックへ</h2><p>同じケースを自動テストにも開発用モックにも再利用。二重管理を減らします。</p></article>
+        <article><span>03</span><h2>本番では呼び出しコストゼロ</h2><p>宣言型APIなら本番で元関数をそのまま返し、実行時のラッパーや条件分岐を残しません。</p></article>
+      </section>
+    </main>
+    <script>
+      document.querySelector("[data-copy-install]")?.addEventListener("click", async (event) => {
+        await navigator.clipboard.writeText("pip install niltest");
+        const button = event.currentTarget;
+        if (button instanceof HTMLButtonElement) {
+          const label = button.querySelector("span");
+          if (label) label.textContent = "コピーしました ✓";
+          button.classList.add("copied");
+          setTimeout(() => { button.classList.remove("copied"); if (label) label.textContent = "コピー"; }, 1800);
+        }
+      });
+    </script>
+  </body>
+</html>

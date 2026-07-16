@@ -1,4 +1,5 @@
 """A fast, dependency-free demo used by the README and judges."""
+
 from __future__ import annotations
 
 from niltest import expect, scenario

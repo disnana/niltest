@@ -1,5 +1,5 @@
-import os
 import locale
+import os
 
 from ._i18n import is_registered_locale, normalize_locale
 

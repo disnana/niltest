@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import niltest
 import pytest
+
+import niltest
 
 
 @pytest.fixture(autouse=True)
@@ -22,7 +23,9 @@ def test_english_output_and_docstring():
     @scenario("Greeting")
     def greet(name: str) -> str:
         if expect:
-            expect.case("Known name", desc="A fixed greeting", given={"name": "Ada"}, returns="Hi Ada")
+            expect.case(
+                "Known name", desc="A fixed greeting", given={"name": "Ada"}, returns="Hi Ada"
+            )
         return f"Hi {name}"
 
     assert greet("Ada") == "Hi Ada"

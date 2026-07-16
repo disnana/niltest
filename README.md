@@ -2,7 +2,7 @@
 
 > Executable specifications, mocks, and lightweight tests—next to the Python function they describe.
 
-[日本語](#日本語) · [English](#english) · [Documentation](./docs/README.en.md) · [MIT License](./LICENSE)
+[日本語](#日本語) · [English](#english) · [Documentation](https://niltest.disnana.com/docs/) · [MIT License](./LICENSE)
 
 ## 日本語
 
@@ -32,7 +32,7 @@ assert result.success
 
 ### 3分で試す
 
-Python 3.9以降のWindows、macOS、Linuxに対応しています。
+Python 3.10以降のWindows、macOS、Linuxに対応しています。
 
 ```bash
 git clone https://github.com/disnana/niltest.git
@@ -70,13 +70,28 @@ python -m pytest
 
 > niltest は pytest の代替ではありません。小さな実行可能仕様をコードの近くに置き、pytestやCIを補完するツールです。
 
+### 呼び出し時コストをゼロにする宣言型API
+
+既存の `if expect:` はそのまま使えます。関数内の条件分岐も残したくない場合は、ケースを `@docs` で囲みます。
+
+```python
+from niltest import case, docs, scenario
+
+@scenario("配送料")
+@docs(case("プレミアム会員", given={"premium": True}, returns=0))
+def shipping_fee(premium: bool) -> int:
+    return 0 if premium else 500
+```
+
+`PRODUCTION=true` では `@scenario` が元関数をそのまま返します。関数の呼び出し時にniltestのラッパーも条件分岐もありません。
+
 ## English
 
 Tests, mock definitions, and documentation often drift across separate files. niltest turns examples declared at the top of a function into all three: readable specifications, fixed development mocks, and executable implementation checks.
 
 ### Quick start
 
-The project supports Python 3.9+ on Windows, macOS, and Linux. Follow the setup commands above, then run:
+The project supports Python 3.10+ on Windows, macOS, and Linux. Follow the setup commands above, then run:
 
 ```bash
 niltest run examples.demo --language en
@@ -85,7 +100,7 @@ niltest run examples.demo --json
 
 The command exits with `0` when every case passes, `1` for specification failures, and `2` for usage or import errors.
 
-See the [English documentation](./docs/README.en.md), [API reference](./docs/api.en.md), and [localization guide](./docs/i18n.md).
+See the [English documentation](https://niltest.disnana.com/docs/en/), [API reference](https://niltest.disnana.com/docs/en/api/), and [localization guide](https://niltest.disnana.com/docs/en/localization/).
 
 ## Built with Codex and GPT-5.6
 

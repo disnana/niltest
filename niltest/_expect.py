@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from contextvars import ContextVar, Token
 from typing import Any
 
@@ -15,12 +16,8 @@ class _MockReturn(BaseException):
         self.value = value
 
 
-_call_kwargs: ContextVar[dict[str, Any] | None] = ContextVar(
-    "niltest_call_kwargs", default=None
-)
-_pending_cases: ContextVar[list[_Case] | None] = ContextVar(
-    "niltest_pending_cases", default=None
-)
+_call_kwargs: ContextVar[dict[str, Any] | None] = ContextVar("niltest_call_kwargs", default=None)
+_pending_cases: ContextVar[list[_Case] | None] = ContextVar("niltest_pending_cases", default=None)
 
 
 class _ExecutionContext:
@@ -34,10 +31,10 @@ class _ExecutionContext:
     def call_kwargs(self, value: dict[str, Any] | None) -> None:
         _call_kwargs.set(value)
 
-    def push(self, value: dict[str, Any] | None) -> Token:
+    def push(self, value: dict[str, Any] | None) -> Token[dict[str, Any] | None]:
         return _call_kwargs.set(value)
 
-    def pop(self, token: Token) -> None:
+    def pop(self, token: Token[dict[str, Any] | None]) -> None:
         _call_kwargs.reset(token)
 
 
@@ -68,10 +65,10 @@ class Expect:
     def _pending(self, value: list[_Case]) -> None:
         _pending_cases.set(value)
 
-    def _push_pending(self) -> Token:
+    def _push_pending(self) -> Token[list[_Case] | None]:
         return _pending_cases.set([])
 
-    def _pop_pending(self, token: Token) -> None:
+    def _pop_pending(self, token: Token[list[_Case] | None]) -> None:
         _pending_cases.reset(token)
 
     # ------------------------------------------------------------------
@@ -109,7 +106,7 @@ class Expect:
         # MOCK モード: 現在の呼び出し引数と given が一致したら即返却
         # __DOC_SCAN__ モードや、callable/型のみ returns はモックとして使えないのでスキップ
         if _config._MODE == "MOCK" and can_use_as_mock(returns):
-            ctx: dict | None = getattr(_local, "call_kwargs", None)
+            ctx: dict[str, Any] | None = _local.call_kwargs
             if ctx is not None and ctx == given:
                 raise _MockReturn(returns)
 

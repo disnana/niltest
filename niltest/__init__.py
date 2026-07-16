@@ -32,11 +32,18 @@ niltest
 - niltest run      : 定義されたケースで自動テストを実行
 """
 
+from typing import Protocol, cast
+
 from ._config import configure
+from ._declared import case, docs
 from ._expect import expect
 from ._i18n import register_locale
-from ._scenario import scenario, _registry
 from ._result import CaseResult, RunResult, ScenarioResult
+from ._scenario import _registry, scenario
+
+
+class _RunnableScenario(Protocol):
+    def run_tests(self) -> ScenarioResult: ...
 
 
 def run_tests(*funcs: object) -> RunResult:
@@ -52,12 +59,20 @@ def run_tests(*funcs: object) -> RunResult:
     results: list[ScenarioResult] = []
     for t in targets:
         if hasattr(t, "run_tests"):
-            results.append(t.run_tests())  # type: ignore[union-attr]
+            results.append(cast(_RunnableScenario, t).run_tests())
     return RunResult(tuple(results))
 
 
 __all__ = [
-    "CaseResult", "RunResult", "ScenarioResult", "configure", "expect",
-    "register_locale", "scenario", "run_tests",
+    "CaseResult",
+    "RunResult",
+    "ScenarioResult",
+    "case",
+    "configure",
+    "docs",
+    "expect",
+    "register_locale",
+    "run_tests",
+    "scenario",
 ]
 __version__ = "0.1.0"

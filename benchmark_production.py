@@ -3,11 +3,14 @@
 インポート前に環境変数を設定することで、
 デコレータが最初からパススルーとして機能します。
 """
+
 import os
+
 os.environ["PRODUCTION"] = "true"  # ← インポート前に設定するのが重要
 
 import timeit
-from niltest import scenario, expect
+
+from niltest import expect, scenario
 
 
 # PRODUCTION=true 状態でデコレート
@@ -15,7 +18,8 @@ from niltest import scenario, expect
 @scenario("ベンチマーク用決済処理")
 def process_payment(amount: int, user_status: str) -> str:
     if expect:  # expect は False なので絶対に入らない
-        expect.case("テスト",
+        expect.case(
+            "テスト",
             given=dict(amount=1, user_status="x"),
             returns="x",
         )

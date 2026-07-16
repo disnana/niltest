@@ -1,4 +1,5 @@
 """Locale registry and translation helpers for niltest."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping

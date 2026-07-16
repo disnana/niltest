@@ -44,9 +44,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     requested = set(args.modules)
     targets = [
-        target
-        for target in _registry.values()
-        if getattr(target, "__module__", "") in requested
+        target for target in _registry.values() if getattr(target, "__module__", "") in requested
     ]
     if not targets:
         print("niltest: imported modules did not register any scenarios", file=sys.stderr)

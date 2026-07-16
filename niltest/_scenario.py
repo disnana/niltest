@@ -1,14 +1,16 @@
 from __future__ import annotations
+
 import asyncio
 import functools
 import inspect
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from . import _config
-from ._expect import Expect, _MockReturn, _local, expect
-from ._docgen import build_docstring
 from ._case import _Case
-from ._compare import returns_match
+from ._compare import can_use_as_mock, returns_match
+from ._docgen import build_docstring
+from ._expect import _local, _MockReturn, expect
 from ._i18n import translate
 from ._result import CaseResult, ScenarioResult
 
@@ -25,13 +27,22 @@ def scenario(title: str) -> Callable[[F], F]:
     - PRODUCTION=True  : 元の関数をそのまま返します（ラッパーなし）
     - PRODUCTION=False : ラッパーを適用し、モック・テスト・docstring生成を有効化します
     """
+
     def decorator(func: F) -> F:
+        declared_cases = list(getattr(func, "__niltest_cases__", ()))
         if _config._PRODUCTION:
             return func
 
-        cases: list[_Case] = []
-        doc_built = False
+        cases: list[_Case] = declared_cases
+        doc_built = bool(declared_cases)
         is_async = inspect.iscoroutinefunction(func)
+
+        def _apply_declared_mock(call_kwargs: dict[str, Any]) -> None:
+            if _config._MODE != "MOCK":
+                return
+            for declared in declared_cases:
+                if declared.given == call_kwargs and can_use_as_mock(declared.returns):
+                    raise _MockReturn(declared.returns)
 
         def _collect_all_cases(*args: Any, **kwargs: Any) -> None:
             nonlocal doc_built, cases
@@ -56,9 +67,7 @@ def scenario(title: str) -> Callable[[F], F]:
                 _local.pop(call_token)
                 expect._pop_pending(pending_token)
             if cases:
-                wrapper.__doc__ = build_docstring(
-                    func.__doc__ or "", title, cases
-                )
+                wrapper.__doc__ = build_docstring(func.__doc__ or "", title, cases)
             doc_built = True
 
         def _try_early_collect() -> None:
@@ -82,7 +91,8 @@ def scenario(title: str) -> Callable[[F], F]:
                 dummy = {
                     name: None
                     for name, p in sig.parameters.items()
-                    if p.kind not in (
+                    if p.kind
+                    not in (
                         inspect.Parameter.VAR_POSITIONAL,
                         inspect.Parameter.VAR_KEYWORD,
                     )
@@ -93,6 +103,7 @@ def scenario(title: str) -> Callable[[F], F]:
 
         # ─── 実行時ラッパーの定義 ───
         if is_async:
+
             @functools.wraps(func)
             async def wrapper(*args: Any, **kwargs: Any) -> Any:
                 nonlocal doc_built
@@ -107,6 +118,7 @@ def scenario(title: str) -> Callable[[F], F]:
 
                 call_token = _local.push(call_kwargs)
                 try:
+                    _apply_declared_mock(call_kwargs)
                     return await func(*args, **kwargs)
                 except _MockReturn as e:
                     return e.value
@@ -114,6 +126,7 @@ def scenario(title: str) -> Callable[[F], F]:
                     _local.pop(call_token)
                     expect._pop_pending(pending_token)
         else:
+
             @functools.wraps(func)
             def wrapper(*args: Any, **kwargs: Any) -> Any:
                 nonlocal doc_built
@@ -128,6 +141,7 @@ def scenario(title: str) -> Callable[[F], F]:
 
                 call_token = _local.push(call_kwargs)
                 try:
+                    _apply_declared_mock(call_kwargs)
                     return func(*args, **kwargs)
                 except _MockReturn as e:
                     return e.value
@@ -184,6 +198,9 @@ def scenario(title: str) -> Callable[[F], F]:
 
         wrapper.run_tests = run_tests  # type: ignore[attr-defined]
 
+        if declared_cases:
+            wrapper.__doc__ = build_docstring(func.__doc__ or "", title, declared_cases)
+
         # 早期収集を試行
         _try_early_collect()
 
@@ -196,7 +213,7 @@ def scenario(title: str) -> Callable[[F], F]:
 def _run_sync(coro: Any) -> Any:
     """非同期コルーチンを同期的に実行して結果を返します。"""
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_running_loop()
     except RuntimeError:
         return asyncio.run(coro)
     else:
@@ -206,4 +223,6 @@ def _run_sync(coro: Any) -> Any:
         close = getattr(coro, "close", None)
         if close is not None:
             close()
-        raise RuntimeError("run_tests() cannot be called from within an already running asyncio event loop.")
+        raise RuntimeError(
+            "run_tests() cannot be called from within an already running asyncio event loop."
+        )

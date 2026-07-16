@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from . import _config
 from ._case import _Case
 from ._compare import format_returns
-from . import _config
 from ._i18n import translate
 
 
@@ -26,7 +26,9 @@ def build_docstring(original_doc: str, title: str, cases: list[_Case]) -> str:
             lines.append(f"    {translate(_config._LANGUAGE, 'description'):<10}: {c.desc}")
         for k, v in c.given.items():
             lines.append(f"    {k:<10}: {v!r}")
-        lines.append(f"    -> {translate(_config._LANGUAGE, 'returns')}: {format_returns(c.returns)}")
+        lines.append(
+            f"    -> {translate(_config._LANGUAGE, 'returns')}: {format_returns(c.returns)}"
+        )
         lines.append("")
 
     return "\n".join(lines)

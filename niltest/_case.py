@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 from typing import Any
 
 
 class _Case:
     """1つの仕様ケースを表すデータクラス。"""
-    __slots__ = ("name", "desc", "given", "returns")
+
+    __slots__ = ("desc", "given", "name", "returns")
 
     def __init__(
         self,

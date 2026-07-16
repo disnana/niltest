@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 def test_language_detection_falls_back_to_english(monkeypatch):
     import niltest._config as config
 

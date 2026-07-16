@@ -1,0 +1,191 @@
+---
+import { pages } from "@/content/pages";
+import { languageName, locales, t } from "@/locales";
+import { docUrl } from "@/lib/urls";
+import "@/styles/global.css";
+
+type Props = {
+  locale: string;
+  slug: string;
+  title: string;
+  description: string;
+};
+
+const { locale, slug, title, description } = Astro.props;
+const canonical = new URL(docUrl(locale, slug), Astro.site);
+const groups = [...new Set(pages.map((page) => page.group))];
+const searchItems = pages.map((page) => ({
+  title: t(locale, page.nav),
+  group: t(locale, page.group),
+  href: docUrl(locale, page.slug),
+}));
+---
+
+<!doctype html>
+<html lang={locale} data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f8f8fb" />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={`${title} — niltest`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>{title} — niltest docs</title>
+    <script is:inline>
+      (() => {
+        const saved = localStorage.getItem("niltest-theme");
+        const dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">{t(locale, "ui.skip")}</a>
+    <header class="topbar">
+      <a class="brand" href={docUrl(locale)} aria-label="niltest home">
+        <span class="brand-mark">nil</span><span>test</span>
+        <span class="brand-docs">{t(locale, "ui.docs")}</span>
+      </a>
+      <div class="top-actions">
+        <button class="search-trigger" type="button" data-search-open>
+          <span aria-hidden="true">⌕</span>
+          <span>{t(locale, "ui.search")}</span>
+          <kbd>Ctrl K</kbd>
+        </button>
+        <details class="language-menu">
+          <summary aria-label={t(locale, "ui.language")} title={t(locale, "ui.language")}>
+            <span aria-hidden="true">◎</span>
+            <strong>{locale.toUpperCase()}</strong>
+            <span class="chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div class="language-popover">
+            <p>{t(locale, "ui.language")}</p>
+            {locales.map((item) => (
+              <a href={docUrl(item, slug)} lang={item} aria-current={item === locale ? "page" : undefined}>
+                <span><strong>{languageName(item)}</strong><small>{item.toUpperCase()}</small></span>
+                <span class="language-check" aria-hidden="true">{item === locale ? "✓" : ""}</span>
+              </a>
+            ))}
+          </div>
+        </details>
+        <button class="icon-button" type="button" data-theme-toggle aria-label={t(locale, "ui.theme")} title={t(locale, "ui.theme")}>◐</button>
+        <a class="github-link" href="https://github.com/disnana/niltest">{t(locale, "ui.github")} ↗</a>
+      </div>
+    </header>
+
+    <div class="mobile-nav">
+      <details>
+        <summary>{t(locale, "ui.menu")} <span aria-hidden="true">＋</span></summary>
+        <nav aria-label="Mobile documentation">
+          {groups.map((group) => (
+            <section>
+              <p>{t(locale, group)}</p>
+              {pages.filter((page) => page.group === group).map((page) => (
+                <a class:list={[page.slug === slug && "active"]} href={docUrl(locale, page.slug)}>{t(locale, page.nav)}</a>
+              ))}
+            </section>
+          ))}
+        </nav>
+      </details>
+    </div>
+
+    <div class="docs-shell">
+      <aside class="sidebar">
+        <nav aria-label="Documentation">
+          {groups.map((group) => (
+            <section class="nav-group">
+              <p>{t(locale, group)}</p>
+              {pages.filter((page) => page.group === group).map((page) => (
+                <a class:list={[page.slug === slug && "active"]} href={docUrl(locale, page.slug)}>
+                  <span>{t(locale, page.nav)}</span>
+                </a>
+              ))}
+            </section>
+          ))}
+        </nav>
+        <div class="sidebar-foot">
+          <code>pip install niltest</code>
+          <span>{t(locale, "ui.version")}</span>
+        </div>
+      </aside>
+      <main id="content" tabindex="-1"><slot /></main>
+    </div>
+
+    <dialog class="search-dialog" data-search-dialog>
+      <div class="search-box">
+        <label>
+          <span aria-hidden="true">⌕</span>
+          <input type="search" placeholder={t(locale, "ui.searchHint")} autocomplete="off" data-search-input />
+          <kbd>Esc</kbd>
+        </label>
+        <div class="search-results" data-search-results></div>
+        <p class="search-empty" data-search-empty hidden>{t(locale, "ui.noResults")}</p>
+      </div>
+    </dialog>
+
+    <script is:inline define:vars={{ searchItems }}>
+      const root = document.documentElement;
+      document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
+        const next = root.dataset.theme === "dark" ? "light" : "dark";
+        root.dataset.theme = next;
+        localStorage.setItem("niltest-theme", next);
+      });
+
+      const dialog = document.querySelector("[data-search-dialog]");
+      const input = document.querySelector("[data-search-input]");
+      const results = document.querySelector("[data-search-results]");
+      const empty = document.querySelector("[data-search-empty]");
+
+      function renderSearch(query = "") {
+        const normalized = query.trim().toLocaleLowerCase();
+        const matches = searchItems.filter((item) =>
+          `${item.title} ${item.group}`.toLocaleLowerCase().includes(normalized),
+        );
+        results.replaceChildren(...matches.map((item) => {
+          const link = document.createElement("a");
+          link.href = item.href;
+          const title = document.createElement("strong");
+          title.textContent = item.title;
+          const group = document.createElement("span");
+          group.textContent = item.group;
+          link.append(title, group);
+          return link;
+        }));
+        empty.hidden = matches.length > 0;
+      }
+
+      function openSearch() {
+        renderSearch();
+        dialog.showModal();
+        requestAnimationFrame(() => input.focus());
+      }
+
+      document.querySelector("[data-search-open]")?.addEventListener("click", openSearch);
+      input?.addEventListener("input", (event) => renderSearch(event.target.value));
+      document.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+          event.preventDefault();
+          openSearch();
+        }
+        if (event.key === "Escape" && dialog.open) dialog.close();
+      });
+      dialog?.addEventListener("click", (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const code = button.closest(".code-block")?.querySelector("code")?.textContent ?? "";
+          await navigator.clipboard.writeText(code);
+          const original = button.textContent;
+          button.textContent = button.dataset.copied;
+          setTimeout(() => { button.textContent = original; }, 1400);
+        });
+      });
+    </script>
+  </body>
+</html>

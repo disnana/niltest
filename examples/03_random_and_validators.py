@@ -8,22 +8,24 @@ returns に `lambda` や `型(type)` を渡すことができます。
 モックモード時は実行がスキップされ、実際の実装が呼ばれます。
 テストモード時は、バリデータとして機能します。
 """
+
 import uuid
+
 import niltest
-from niltest import scenario, expect
+from niltest import expect, scenario
 
 niltest.configure(mode="MOCK")
+
 
 @scenario("トークン生成")
 def create_token(user_id: int) -> dict:
     if expect:
         # lambda をバリデータとして使うケース
-        expect.case("正常系: 辞書と中身の検証",
+        expect.case(
+            "正常系: 辞書と中身の検証",
             given=dict(user_id=42),
             returns=lambda r: (
-                isinstance(r.get("token"), str) 
-                and len(r["token"]) == 36 
-                and r["user_id"] == 42
+                isinstance(r.get("token"), str) and len(r["token"]) == 36 and r["user_id"] == 42
             ),
         )
 
@@ -38,7 +40,8 @@ def create_token(user_id: int) -> dict:
 def generate_id(prefix: str) -> str:
     if expect:
         # 型チェックだけを行うケース
-        expect.case("正常系: 型だけチェック",
+        expect.case(
+            "正常系: 型だけチェック",
             given=dict(prefix="usr"),
             returns=str,
         )
@@ -51,7 +54,7 @@ if __name__ == "__main__":
     # モックには使えないため、実際の値が返る
     print("Token:", create_token(42))
     print("ID:", generate_id("usr"))
-    
+
     print("\n=== テスト実行 ===")
     niltest.configure(mode="TEST")
     niltest.run_tests(create_token, generate_id)

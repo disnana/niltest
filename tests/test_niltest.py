@@ -3,9 +3,11 @@ niltest テストスイート
 
 各モジュールの動作を pytest で徹底検証します。
 """
+
 from __future__ import annotations
+
 import dataclasses
-import uuid
+
 import pytest
 
 
@@ -15,10 +17,9 @@ import pytest
 @pytest.fixture(autouse=True)
 def reset_niltest():
     """各テスト前後に niltest の設定とレジストリをリセットします。"""
-    import niltest
     import niltest._config as cfg
-    import niltest._scenario as sc
     import niltest._expect as ex
+    import niltest._scenario as sc
 
     cfg._PRODUCTION = False
     cfg._MODE = "MOCK"
@@ -38,36 +39,46 @@ class TestConfigure:
     def test_default_from_env_production_false(self, monkeypatch):
         monkeypatch.delenv("PRODUCTION", raising=False)
         import niltest._config as cfg
+
         cfg._PRODUCTION = False
         assert cfg._PRODUCTION is False
 
     def test_configure_production_true(self):
         import niltest
+
         niltest.configure(production=True)
         import niltest._config as cfg
+
         assert cfg._PRODUCTION is True
 
     def test_configure_production_false(self):
         import niltest
+
         niltest.configure(production=False)
         import niltest._config as cfg
+
         assert cfg._PRODUCTION is False
 
     def test_configure_mode_mock(self):
         import niltest
+
         niltest.configure(mode="MOCK")
         import niltest._config as cfg
+
         assert cfg._MODE == "MOCK"
 
     def test_configure_mode_test(self):
         import niltest
+
         niltest.configure(mode="TEST")
         import niltest._config as cfg
+
         assert cfg._MODE == "TEST"
 
     def test_configure_partial_update(self):
         import niltest
         import niltest._config as cfg
+
         niltest.configure(production=False, mode="MOCK")
         niltest.configure(mode="TEST")  # production は変わらないはず
         assert cfg._PRODUCTION is False
@@ -81,12 +92,14 @@ class TestExpectBool:
     def test_expect_is_truthy_in_dev_mode(self):
         import niltest._config as cfg
         from niltest._expect import expect
+
         cfg._PRODUCTION = False
         assert bool(expect) is True
 
     def test_expect_is_falsy_in_production(self):
         import niltest._config as cfg
         from niltest._expect import expect
+
         cfg._PRODUCTION = True
         assert bool(expect) is False
         cfg._PRODUCTION = False  # 後続テストのためリセット
@@ -98,7 +111,8 @@ class TestExpectBool:
 class TestScenarioMock:
     def test_plain_value_mock_match(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("テスト: プレーン値")
@@ -111,7 +125,8 @@ class TestScenarioMock:
 
     def test_plain_value_mock_no_match_calls_real(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("テスト: マッチなし")
@@ -124,7 +139,8 @@ class TestScenarioMock:
 
     def test_mock_with_dataclass(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @dataclasses.dataclass
@@ -143,7 +159,8 @@ class TestScenarioMock:
     def test_mock_skips_for_type_only_returns(self):
         """型のみ returns はモックに使えないので実装が動くはず"""
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @dataclasses.dataclass
@@ -162,14 +179,14 @@ class TestScenarioMock:
     def test_mock_skips_for_callable_returns(self):
         """callable returns はモックに使えないので実装が動くはず"""
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("テスト: callable returns")
         def func(x: int) -> int:
             if expect:
-                expect.case("バリデータ", given=dict(x=1),
-                            returns=lambda r: r > 0)
+                expect.case("バリデータ", given=dict(x=1), returns=lambda r: r > 0)
             return x * 2
 
         assert func(1) == 2
@@ -177,7 +194,8 @@ class TestScenarioMock:
     def test_production_mode_bypasses_wrapper(self):
         """PRODUCTION=True のとき @scenario は素通し"""
         import niltest
-        from niltest import scenario, expect
+        from niltest import scenario
+
         niltest.configure(production=True)
 
         call_count = {"n": 0}
@@ -200,17 +218,20 @@ class TestScenarioMock:
 class TestRunTests:
     def _make_payment_func(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("決済処理")
         def process_payment(amount: int, user_status: str) -> str:
             if expect:
-                expect.case("異常系: 無効金額",
+                expect.case(
+                    "異常系: 無効金額",
                     given=dict(amount=-1, user_status="member"),
                     returns="invalid_amount",
                 )
-                expect.case("正常系: 通常決済",
+                expect.case(
+                    "正常系: 通常決済",
                     given=dict(amount=5_000, user_status="member"),
                     returns="approved",
                 )
@@ -222,6 +243,7 @@ class TestRunTests:
 
     def test_all_pass(self, capsys):
         import niltest
+
         func = self._make_payment_func()
         niltest.configure(mode="TEST")
         niltest.run_tests(func)
@@ -232,13 +254,15 @@ class TestRunTests:
 
     def test_fail_detected(self, capsys):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("バグあり関数")
         def buggy(x: int) -> str:
             if expect:
-                expect.case("正常系",
+                expect.case(
+                    "正常系",
                     given=dict(x=1),
                     returns="correct",
                 )
@@ -258,23 +282,27 @@ class TestRunTests:
 class TestReturnsMatch:
     def test_plain_value_match(self):
         from niltest._compare import returns_match
+
         ok, reason = returns_match("approved", "approved")
         assert ok is True
         assert reason == ""
 
     def test_plain_value_mismatch(self):
         from niltest._compare import returns_match
+
         ok, reason = returns_match("wrong", "approved")
         assert ok is False
         assert "値不一致" in reason
 
     def test_type_check_pass(self):
         from niltest._compare import returns_match
+
         ok, _ = returns_match("hello", str)
         assert ok is True
 
     def test_type_check_fail(self):
         from niltest._compare import returns_match
+
         ok, reason = returns_match(123, str)
         assert ok is False
         assert "型不一致" in reason
@@ -303,19 +331,24 @@ class TestReturnsMatch:
 
     def test_callable_validator_pass(self):
         from niltest._compare import returns_match
-        ok, _ = returns_match({"id": "abc-123", "count": 5},
-                               lambda r: isinstance(r["id"], str) and r["count"] > 0)
+
+        ok, _ = returns_match(
+            {"id": "abc-123", "count": 5}, lambda r: isinstance(r["id"], str) and r["count"] > 0
+        )
         assert ok is True
 
     def test_callable_validator_fail(self):
         from niltest._compare import returns_match
-        ok, reason = returns_match({"id": None, "count": 0},
-                                    lambda r: isinstance(r["id"], str) and r["count"] > 0)
+
+        ok, reason = returns_match(
+            {"id": None, "count": 0}, lambda r: isinstance(r["id"], str) and r["count"] > 0
+        )
         assert ok is False
         assert "バリデータ" in reason
 
     def test_callable_validator_exception(self):
         from niltest._compare import returns_match
+
         # バリデータが例外を投げてもクラッシュしない
         ok, reason = returns_match(None, lambda r: r["key"])
         assert ok is False
@@ -324,6 +357,7 @@ class TestReturnsMatch:
     def test_pydantic_model_match(self):
         pytest.importorskip("pydantic")
         from pydantic import BaseModel
+
         from niltest._compare import returns_match
 
         class M(BaseModel):
@@ -336,6 +370,7 @@ class TestReturnsMatch:
     def test_pydantic_model_mismatch(self):
         pytest.importorskip("pydantic")
         from pydantic import BaseModel
+
         from niltest._compare import returns_match
 
         class M(BaseModel):
@@ -353,13 +388,15 @@ class TestReturnsMatch:
 class TestDocstring:
     def test_docstring_generated_on_first_call(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("仕様タイトル")
         def func(x: int) -> str:
             if expect:
-                expect.case("ケース1",
+                expect.case(
+                    "ケース1",
                     desc="説明文",
                     given=dict(x=1),
                     returns="ok",
@@ -374,7 +411,8 @@ class TestDocstring:
 
     def test_docstring_contains_all_cases(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("全ケース確認")
@@ -393,7 +431,8 @@ class TestDocstring:
 
     def test_no_docstring_in_production(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import scenario
+
         niltest.configure(production=True)
 
         @scenario("本番")
@@ -405,7 +444,8 @@ class TestDocstring:
 
     def test_docstring_empty_original_doc(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("No doc")
@@ -413,7 +453,7 @@ class TestDocstring:
             if expect:
                 expect.case("A", given={}, returns=1)
             return 1
-        
+
         func()
         # original doc が空の場合のパス（_docgen.py L15-16）をカバー
         assert "Scenario: No doc" in (func.__doc__ or "")
@@ -426,8 +466,9 @@ class TestAsyncScenarioMock:
     @pytest.mark.asyncio
     async def test_concurrent_calls_keep_separate_contexts(self):
         import asyncio
+
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
 
         niltest.configure(production=False, mode="MOCK")
 
@@ -444,7 +485,8 @@ class TestAsyncScenarioMock:
     @pytest.mark.asyncio
     async def test_async_mock_match(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("非同期テスト")
@@ -459,7 +501,8 @@ class TestAsyncScenarioMock:
     @pytest.mark.asyncio
     async def test_async_mock_no_match(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("非同期テスト")
@@ -475,7 +518,8 @@ class TestAsyncScenarioMock:
 class TestAsyncRunTests:
     def test_async_run_tests_success(self, capsys):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("非同期自動テスト")
@@ -493,7 +537,8 @@ class TestAsyncRunTests:
 
     def test_async_run_tests_fail(self, capsys):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("非同期自動テスト(失敗)")
@@ -515,7 +560,7 @@ class TestAsyncRunTests:
 class TestEdgeCases:
     def test_nested_scenario_restores_outer_context(self):
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
 
         niltest.configure(production=False, mode="MOCK")
 
@@ -538,23 +583,25 @@ class TestEdgeCases:
         # _expect.py の 61 行目: if _config._PRODUCTION: return
         import niltest
         from niltest._expect import expect
+
         niltest.configure(production=True)
         # 呼ばれても何もしない
         expect.case("test", given={}, returns=None)
         assert len(expect._pending) == 0
-    
+
     def test_format_returns_exceptions(self):
         # _compare.py の format_returns でソース取得失敗の例外パスをカバー
         from niltest._compare import format_returns
-        
+
         # 組込み関数などはソースが取れない
         res = format_returns(len)
         assert "validator: <callable>" in res
-        
+
     def test_try_early_collect_fail(self):
         # デフォルト値がない引数がある場合、早期収集はスキップされる
         import niltest
-        from niltest import scenario, expect
+        from niltest import expect, scenario
+
         niltest.configure(production=False, mode="MOCK")
 
         @scenario("必須引数あり")
@@ -562,14 +609,15 @@ class TestEdgeCases:
             if expect:
                 expect.case("A", given=dict(req=1), returns=1)
             return req
-        
+
         # 適用直後は doc_built = False
         assert not hasattr(func, "_niltest_doc_done")
 
     def test_run_sync_with_existing_loop(self):
         import asyncio
+
         from niltest._scenario import _run_sync
-        
+
         async def dummy():
             pass
 
