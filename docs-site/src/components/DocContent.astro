@@ -24,8 +24,8 @@ const inlineCode = (value: string) => value.replace(/`([^`]+)`/g, "<code>$1</cod
       <p class="page-lead">{t(locale, page.lead)}</p>
       {isHome && (
         <div class="hero-actions">
-          <a class="primary-button" href={docUrl(locale, "getting-started")}>{t(locale, "ui.start")} →</a>
-          <button class="install-command code-inline" type="button" data-copy-install>pip install niltest <span aria-live="polite">コピー</span></button>
+          <a class="primary-button" href={docUrl(locale, "getting-started")}>{t(locale, "ui.start")}</a>
+          <div class="quick-install"><code tabindex="0">pip install niltest</code><button type="button" data-copy-install aria-live="polite">{locale === "ja" ? "コピー" : "Copy"}</button></div>
         </div>
       )}
       {isHome && (
@@ -59,23 +59,24 @@ const inlineCode = (value: string) => value.replace(/`([^`]+)`/g, "<code>$1</cod
     </div>
 
     <nav class="pager" aria-label="Pagination">
-      {previous ? <a href={docUrl(locale, previous.slug)}><span>{t(locale, "ui.previous")}</span><strong>← {t(locale, previous.nav)}</strong></a> : <span />}
-      {next && <a class="next" href={docUrl(locale, next.slug)}><span>{t(locale, "ui.next")}</span><strong>{t(locale, next.nav)} →</strong></a>}
+      {previous ? <a href={docUrl(locale, previous.slug)}><span>{t(locale, "ui.previous")}</span><strong>{t(locale, previous.nav)}</strong></a> : <span />}
+      {next && <a class="next" href={docUrl(locale, next.slug)}><span>{t(locale, "ui.next")}</span><strong>{t(locale, next.nav)}</strong></a>}
     </nav>
   </article>
 </DocsLayout>
 
 <script>
   document.querySelector("[data-copy-install]")?.addEventListener("click", async (event) => {
-    await navigator.clipboard.writeText("pip install niltest");
     const button = event.currentTarget;
     if (!(button instanceof HTMLButtonElement)) return;
-    const label = button.querySelector("span");
-    if (label) label.textContent = "コピーしました ✓";
+    const code = button.closest(".quick-install")?.querySelector("code")?.textContent ?? "pip install niltest";
+    await navigator.clipboard.writeText(code);
+    const original = button.textContent;
+    button.textContent = document.documentElement.lang === "ja" ? "コピーしました ✓" : "Copied ✓";
     button.classList.add("copied");
     setTimeout(() => {
       button.classList.remove("copied");
-      if (label) label.textContent = "コピー";
+      button.textContent = original;
     }, 2200);
   });
 </script>

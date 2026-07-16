@@ -30,10 +30,10 @@ def shipping_fee(premium: bool) -> int:
       <div class="top-actions">
         <a class="home-nav-link" href="/docs/">ドキュメント</a>
         <details class="language-menu">
-          <summary aria-label="言語"><span aria-hidden="true">◎</span><strong>JA</strong></summary>
+          <summary aria-label="言語"><strong>JA</strong></summary>
           <div class="language-popover"><p>言語</p><a href="/" aria-current="page"><span><strong>日本語</strong><small>JA</small></span><span class="language-check">✓</span></a><a href="/en/"><span><strong>English</strong><small>EN</small></span></a></div>
         </details>
-        <button class="icon-button" type="button" data-theme-toggle aria-label="テーマを切り替え">◐</button>
+        <button class="icon-button" type="button" data-theme-toggle aria-label="テーマを切り替え" title="テーマを切り替え">◐</button>
         <a class="github-link" href="https://github.com/disnana/niltest">GitHub</a>
       </div>
     </header>
@@ -45,7 +45,7 @@ def shipping_fee(premium: bool) -> int:
             <p class="eyebrow">PYTHON · ZERO DEPENDENCIES · MIT</p>
             <h1>実装のそばに、<br /><span class="accent-text">動く仕様</span>を。</h1>
             <p class="page-lead">仕様、テスト、モック、ドキュメントを一度だけ書く。小さく始めて、そのままチームの共通言語へ育てられます。</p>
-            <div class="hero-actions"><a class="primary-button" href="/docs/getting-started/">5分で始める →</a><button class="install-command" data-copy-install>pip install niltest <span aria-live="polite">コピー</span></button></div>
+            <div class="hero-actions"><a class="primary-button" href="/docs/getting-started/">5分で始める</a><div class="quick-install"><code tabindex="0">pip install niltest</code><button type="button" data-copy-install aria-live="polite">コピー</button></div></div>
             <div class="hero-proof"><span><strong>0</strong> runtime deps</span><span><strong>2</strong> API styles</span><span><strong>3</strong> modes</span></div>
           </div>
           <div class="product-preview"><div class="preview-label"><span>shipping.py</span><span>Executable specification</span></div><CodeBlock code={example} locale="ja" /></div>
@@ -59,7 +59,7 @@ def shipping_fee(premium: bool) -> int:
     </main>
     <script>
       document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => { const root = document.documentElement; const dark = root.dataset.theme !== "dark"; root.dataset.theme = dark ? "dark" : "light"; localStorage.setItem("niltest-theme", dark ? "dark" : "light"); });
-      document.querySelector("[data-copy-install]")?.addEventListener("click", async (event) => { await navigator.clipboard.writeText("pip install niltest"); const button = event.currentTarget; if (!(button instanceof HTMLButtonElement)) return; const label = button.querySelector("span"); if (label) label.textContent = "コピーしました ✓"; button.classList.add("copied"); setTimeout(() => { button.classList.remove("copied"); if (label) label.textContent = "コピー"; }, 2200); });
+      document.querySelector("[data-copy-install]")?.addEventListener("click", async (event) => { const button = event.currentTarget; if (!(button instanceof HTMLButtonElement)) return; const code = button.closest(".quick-install")?.querySelector("code")?.textContent ?? "pip install niltest"; await navigator.clipboard.writeText(code); button.textContent = "コピーしました ✓"; button.classList.add("copied"); setTimeout(() => { button.classList.remove("copied"); button.textContent = "コピー"; }, 2200); });
       document.querySelectorAll("[data-copy]").forEach((element) => {
         if (!(element instanceof HTMLButtonElement)) return;
         element.addEventListener("click", async () => {

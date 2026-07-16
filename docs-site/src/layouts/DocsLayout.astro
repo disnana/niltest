@@ -52,13 +52,11 @@ const searchItems = pages.map((page) => ({
       </a>
       <div class="top-actions">
         <button class="search-trigger" type="button" data-search-open>
-          <span aria-hidden="true">⌕</span>
           <span>{t(locale, "ui.search")}</span>
           <kbd>Ctrl K</kbd>
         </button>
         <details class="language-menu">
           <summary aria-label={t(locale, "ui.language")} title={t(locale, "ui.language")}>
-            <span aria-hidden="true">◎</span>
             <strong>{locale.toUpperCase()}</strong>
           </summary>
           <div class="language-popover">
@@ -78,7 +76,7 @@ const searchItems = pages.map((page) => ({
 
     <div class="mobile-nav">
       <details>
-        <summary>{t(locale, "ui.menu")} <span aria-hidden="true">＋</span></summary>
+        <summary>{t(locale, "ui.menu")}</summary>
         <nav aria-label="Mobile documentation">
           {groups.map((group) => (
             <section>
@@ -95,7 +93,7 @@ const searchItems = pages.map((page) => ({
     <div class="docs-shell">
       <aside class="sidebar">
         <nav aria-label="Documentation">
-          <a class="back-home" href="/">← {locale === "ja" ? "プロダクトホーム" : "Product home"}</a>
+          <a class="back-home" href="/">{locale === "ja" ? "プロダクトホーム" : "Product home"}</a>
           {groups.map((group) => (
             <section class="nav-group">
               <p>{t(locale, group)}</p>
@@ -118,7 +116,6 @@ const searchItems = pages.map((page) => ({
     <dialog class="search-dialog" data-search-dialog>
       <div class="search-box">
         <label>
-          <span aria-hidden="true">⌕</span>
           <input type="search" placeholder={t(locale, "ui.searchHint")} autocomplete="off" data-search-input />
           <kbd>Esc</kbd>
         </label>

@@ -7,9 +7,30 @@ import json
 import sys
 from collections.abc import Sequence
 from contextlib import redirect_stdout
+from typing import Any
 
 from . import __version__, configure, run_tests
 from ._scenario import _registry
+
+
+def _configure_utf8_stream(stream: Any) -> None:
+    """Use UTF-8 for CLI output when the host selected a legacy encoding."""
+    encoding = str(getattr(stream, "encoding", "")).lower().replace("-", "")
+    if encoding in {"utf8", "utf8sig"}:
+        return
+    reconfigure = getattr(stream, "reconfigure", None)
+    if reconfigure is None:
+        return
+    try:
+        reconfigure(encoding="utf-8", errors="replace")
+    except (OSError, ValueError):
+        # Captured or embedded streams may expose reconfigure but reject it.
+        pass
+
+
+def _configure_output_encoding() -> None:
+    _configure_utf8_stream(sys.stdout)
+    _configure_utf8_stream(sys.stderr)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -27,6 +48,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    _configure_output_encoding()
     args = build_parser().parse_args(argv)
     if args.command != "run":
         return 2

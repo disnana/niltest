@@ -4,17 +4,17 @@ const ja = locale === "ja";
 ---
 
 <div class="command-picker" data-command-picker data-locale={locale}>
-  <button class="auto-command" type="button" data-auto-command>{ja ? "わからない場合はこちら（自動選択）" : "Not sure? Choose automatically"} <span>→</span></button>
-  <div class="picker-row">
-    <span>{ja ? "OS" : "OS"}</span>
+  <button class="auto-command" type="button" data-auto-command>{ja ? "わからない場合はこちら（自動選択）" : "Not sure? Choose automatically"}</button>
+  <div class="picker-group">
+    <span class="picker-label">{ja ? "OS" : "OS"}</span>
     <div class="picker-tabs" role="tablist" aria-label={ja ? "OSを選択" : "Select operating system"}>
       <button class="active" type="button" data-os="windows">Windows</button>
       <button type="button" data-os="macos">macOS</button>
       <button type="button" data-os="ubuntu">Ubuntu</button>
     </div>
   </div>
-  <div class="picker-row">
-    <span>{ja ? "環境" : "Environment"}</span>
+  <div class="picker-group">
+    <span class="picker-label">{ja ? "環境" : "Environment"}</span>
     <div class="picker-tabs environment-tabs" role="tablist" aria-label={ja ? "Python環境を選択" : "Select Python environment"}>
       <button class="active" type="button" data-env="venv">{ja ? "仮想環境を有効化済み" : "Virtual environment active"}</button>
       <button type="button" data-env="path">{ja ? "PATH設定済み" : "Python on PATH"}</button>
@@ -22,7 +22,7 @@ const ja = locale === "ja";
     </div>
   </div>
   <div class="picked-command">
-    <code data-command>pip install niltest</code>
+    <code data-command tabindex="0">pip install niltest</code>
     <button type="button" data-copy-command aria-live="polite">{ja ? "コピー" : "Copy"}</button>
   </div>
   <p class="picker-hint" data-command-hint>{ja ? "有効化中の仮想環境へインストールします。" : "Installs into the active virtual environment."}</p>
@@ -76,14 +76,26 @@ const ja = locale === "ja";
       copy.classList.add("copied");
       setTimeout(() => { copy.textContent = isJa ? "コピー" : "Copy"; copy.classList.remove("copied"); }, 2200);
     });
-    automatic?.addEventListener("click", () => {
+    automatic?.addEventListener("click", async () => {
+      const original = isJa ? "わからない場合はこちら（自動選択）" : "Not sure? Choose automatically";
       const platform = navigator.userAgent.toLowerCase();
       os = platform.includes("win") ? "windows" : platform.includes("mac") ? "macos" : "ubuntu";
       environment = "path";
       picker.querySelectorAll<HTMLButtonElement>("[data-os]").forEach((item) => item.classList.toggle("active", item.dataset.os === os));
       picker.querySelectorAll<HTMLButtonElement>("[data-env]").forEach((item) => item.classList.toggle("active", item.dataset.env === environment));
-      automatic.textContent = isJa ? "推奨コマンドを選択しました ✓" : "Recommended command selected ✓";
       update();
+      try {
+        await navigator.clipboard.writeText(command?.textContent ?? "");
+        automatic.textContent = isJa ? "推奨コマンドをコピーしました ✓" : "Recommended command copied ✓";
+        automatic.classList.add("copied");
+      } catch {
+        automatic.textContent = isJa ? "選択しました。コピーボタンを使用してください" : "Selected. Use the copy button.";
+        automatic.classList.add("copy-failed");
+      }
+      setTimeout(() => {
+        automatic.textContent = original;
+        automatic.classList.remove("copied", "copy-failed");
+      }, 2400);
     });
   });
 </script>

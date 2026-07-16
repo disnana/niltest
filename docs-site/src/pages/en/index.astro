@@ -33,7 +33,7 @@ def shipping_fee(premium: bool) -> int:
           <summary aria-label="Language"><strong>EN</strong></summary>
           <div class="language-popover"><p>Language</p><a href="/"><span><strong>日本語</strong><small>JA</small></span></a><a href="/en/" aria-current="page"><span><strong>English</strong><small>EN</small></span><span class="language-check">✓</span></a></div>
         </details>
-        <button class="icon-button theme-text" type="button" data-theme-toggle aria-label="Toggle theme">Theme</button>
+        <button class="icon-button" type="button" data-theme-toggle aria-label="Toggle theme" title="Toggle theme">◐</button>
         <a class="github-link" href="https://github.com/disnana/niltest">GitHub</a>
       </div>
     </header>
@@ -45,7 +45,7 @@ def shipping_fee(premium: bool) -> int:
             <p class="eyebrow">PYTHON · ZERO DEPENDENCIES · MIT</p>
             <h1>Executable specifications,<br /><span class="accent-text">beside your code.</span></h1>
             <p class="page-lead">Write behavior once and reuse it as documentation, tests, and development mocks. Start with one function and grow from there.</p>
-            <div class="hero-actions"><a class="primary-button" href="/docs/en/getting-started/">Get started</a><button class="install-command" data-copy-install>pip install niltest <span aria-live="polite">Copy</span></button></div>
+            <div class="hero-actions"><a class="primary-button" href="/docs/en/getting-started/">Get started</a><div class="quick-install"><code tabindex="0">pip install niltest</code><button type="button" data-copy-install aria-live="polite">Copy</button></div></div>
             <div class="hero-proof"><span><strong>0</strong> runtime deps</span><span><strong>2</strong> API styles</span><span><strong>3</strong> modes</span></div>
           </div>
           <div class="product-preview"><div class="preview-label"><span>shipping.py</span><span>Executable specification</span></div><CodeBlock code={example} locale="ja" /></div>
@@ -59,7 +59,7 @@ def shipping_fee(premium: bool) -> int:
     </main>
     <script>
       document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => { const root = document.documentElement; const dark = root.dataset.theme !== "dark"; root.dataset.theme = dark ? "dark" : "light"; localStorage.setItem("niltest-theme", dark ? "dark" : "light"); });
-      document.querySelector("[data-copy-install]")?.addEventListener("click", async (event) => { await navigator.clipboard.writeText("pip install niltest"); const button = event.currentTarget; if (!(button instanceof HTMLButtonElement)) return; const label = button.querySelector("span"); if (label) label.textContent = "コピーしました ✓"; button.classList.add("copied"); setTimeout(() => { button.classList.remove("copied"); if (label) label.textContent = "コピー"; }, 2200); });
+      document.querySelector("[data-copy-install]")?.addEventListener("click", async (event) => { const button = event.currentTarget; if (!(button instanceof HTMLButtonElement)) return; const code = button.closest(".quick-install")?.querySelector("code")?.textContent ?? "pip install niltest"; await navigator.clipboard.writeText(code); button.textContent = "Copied ✓"; button.classList.add("copied"); setTimeout(() => { button.classList.remove("copied"); button.textContent = "Copy"; }, 2200); });
       document.querySelectorAll("[data-copy]").forEach((element) => {
         if (!(element instanceof HTMLButtonElement)) return;
         element.addEventListener("click", async () => {
