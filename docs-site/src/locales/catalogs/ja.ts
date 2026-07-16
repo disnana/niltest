@@ -132,7 +132,7 @@ const ja: Record<string, string> = {
   "prod.guarantee.p1": "PRODUCTION=trueではscenarioラッパーを生成しません。expect.caseの引数辞書も生成されません。",
   "prod.guarantee.p2": "ソースに書いた `if expect:` の真偽判定コストは残ります。完全なゼロコストではなく、予測可能な最小経路です。",
   "prod.benchmark.title": "対象環境で測る",
-  "prod.benchmark.note": "CPU、OS、Pythonバージョンで数値は変わります。性能要件が厳しい場合は同梱ベンチマークを実行してください。",
+  "prod.benchmark.note": "同梱ベンチマークはプレーン関数、従来の if expect: API、宣言型 @docs APIを並べて測定します。CPU、OS、Pythonバージョンで数値は変わります。",
   "i18n.eyebrow": "Localization",
   "i18n.title": "利用者の言語で結果を伝える",
   "i18n.lead": "日本語・英語を標準搭載し、OS設定を自動検出します。独自言語も依存追加なしで登録できます。",

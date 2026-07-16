@@ -87,6 +87,12 @@ def shipping_fee(premium: bool) -> int:
 
 `PRODUCTION=true` では `@scenario` が元関数をそのまま返します。関数の呼び出し時にniltestのラッパーも条件分岐もありません。
 
+本番経路を実測する場合は、プレーン関数・従来の `if expect:` API・宣言型 `@docs` APIを比較する同梱ベンチマークを実行できます。
+
+```bash
+python benchmark_production.py
+```
+
 ## English
 
 Tests, mock definitions, and documentation often drift across separate files. niltest turns examples declared at the top of a function into all three: readable specifications, fixed development mocks, and executable implementation checks.

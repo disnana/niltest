@@ -4,6 +4,17 @@ import niltest
 from niltest import case, docs, scenario
 
 
+def test_docs_preserves_function_identity_and_attaches_cases() -> None:
+    def original(value: int) -> int:
+        return value + 1
+
+    declared_case = case("one", given={"value": 1}, returns=2)
+    decorated = docs(declared_case)(original)
+
+    assert decorated is original
+    assert decorated.__niltest_cases__ == (declared_case,)  # type: ignore[attr-defined]
+
+
 def test_declared_cases_do_not_execute_function_during_decoration() -> None:
     calls = 0
 

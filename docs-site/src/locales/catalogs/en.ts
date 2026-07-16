@@ -122,7 +122,7 @@ const en: Record<string, string> = {
   "prod.guarantee.p1": "With PRODUCTION=true, niltest creates no scenario wrapper and does not build expect.case argument dictionaries.",
   "prod.guarantee.p2": "The explicit `if expect:` truth check remains. This is a predictable minimal path, not a claim of absolute zero cost.",
   "prod.benchmark.title": "Measure your target environment",
-  "prod.benchmark.note": "Results vary by CPU, OS, and Python version. Run the bundled benchmark for latency-sensitive code.",
+  "prod.benchmark.note": "The bundled benchmark compares a plain function, the inline if expect: API, and the declaration-style @docs API. Results vary by CPU, OS, and Python version.",
   "i18n.eyebrow": "Localization",
   "i18n.title": "Report results in the user's language",
   "i18n.lead": "Japanese and English are built in, with OS detection, English fallback, and a validated extension API.",
