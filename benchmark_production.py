@@ -1,5 +1,5 @@
 """
-本番環境（PRODUCTION=true）でのオーバーヘッド検証ベンチマーク。
+本番環境（NILTEST_MODE=production）でのオーバーヘッド検証ベンチマーク。
 インポート前に環境変数を設定することで、
 デコレータが最初からパススルーとして機能します。
 """
@@ -7,14 +7,14 @@
 import os
 from collections.abc import Callable
 
-os.environ["PRODUCTION"] = "true"  # ← インポート前に設定するのが重要
+os.environ["NILTEST_MODE"] = "production"  # ← インポート前に設定するのが重要
 
 import timeit
 
 from niltest import case, docs, expect, scenario
 
 
-# PRODUCTION=true 状態でデコレート
+# NILTEST_MODE=production 状態でデコレート
 # -> @scenario は func をそのまま返すのでラッパーは一切存在しない
 @scenario("ベンチマーク用決済処理")
 def process_payment(amount: int, user_status: str) -> str:

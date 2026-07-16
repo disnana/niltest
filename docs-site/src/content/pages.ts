@@ -19,7 +19,10 @@ export type Page = {
   sections: Section[];
 };
 
-const basic = `from niltest import expect, scenario
+const basic = `import niltest
+from niltest import expect, scenario
+
+niltest.configure(mode="test")  # @scenarioより前
 
 @scenario("配送料")
 def shipping_fee(subtotal: int, premium: bool = False) -> int:
@@ -94,7 +97,7 @@ pip3 install niltest` },
     lead: "concepts.lead",
     sections: [
       { id: "one-source", title: "concepts.one.title", paragraphs: ["concepts.one.p1", "concepts.one.p2"] },
-      { id: "modes", title: "concepts.modes.title", bullets: ["concepts.modes.b1", "concepts.modes.b2", "concepts.modes.b3"] },
+      { id: "modes", title: "concepts.modes.title", paragraphs: ["concepts.modes.p1"], bullets: ["concepts.modes.b1", "concepts.modes.b2", "concepts.modes.b3"] },
       { id: "pytest", title: "concepts.pytest.title", paragraphs: ["concepts.pytest.p1"], note: "concepts.pytest.note" },
     ],
   },
@@ -106,7 +109,7 @@ pip3 install niltest` },
     title: "mock.title",
     lead: "mock.lead",
     sections: [
-      { id: "exact", title: "mock.exact.title", paragraphs: ["mock.exact.p1"], code: "niltest.configure(mode=\"MOCK\")\nresult = shipping_fee(1_000, premium=True)\nassert result == 0" },
+      { id: "exact", title: "mock.exact.title", paragraphs: ["mock.exact.p1"], code: "import niltest\n\nniltest.configure(mode=\"mock\")  # @scenarioより前\nfrom your_package.shipping import shipping_fee\n\nresult = shipping_fee(1_000, premium=True)\nassert result == 0" },
       { id: "fallback", title: "mock.fallback.title", paragraphs: ["mock.fallback.p1"] },
       { id: "boundaries", title: "mock.boundaries.title", bullets: ["mock.boundaries.b1", "mock.boundaries.b2", "mock.boundaries.b3"] },
     ],
@@ -119,8 +122,9 @@ pip3 install niltest` },
     title: "test.title",
     lead: "test.lead",
     sections: [
-      { id: "python", title: "test.python.title", code: "niltest.configure(mode=\"TEST\")\nresult = niltest.run_tests(shipping_fee)\nassert result.success\nprint(result.to_dict())" },
+      { id: "python", title: "test.python.title", code: "import niltest\n\nniltest.configure(mode=\"test\")  # @scenarioより前\nfrom your_package.shipping import shipping_fee\n\nresult = niltest.run_tests(shipping_fee)\nassert result.success\nprint(result.to_dict())" },
       { id: "cli", title: "test.cli.title", paragraphs: ["test.cli.p1"], code: "niltest run your_package.specs\nniltest run your_package.specs --json" },
+      { id: "inspect", title: "test.inspect.title", paragraphs: ["test.inspect.p1"], code: "niltest inspect your_package.services\nniltest inspect your_package.services --json" },
       { id: "exit", title: "test.exit.title", bullets: ["test.exit.b1", "test.exit.b2", "test.exit.b3"] },
     ],
   },
@@ -136,6 +140,15 @@ pip3 install niltest` },
       { id: "types", title: "expect.types.title", paragraphs: ["expect.types.p1"], code: "returns=UserData  # isinstanceで確認" },
       { id: "validators", title: "expect.validators.title", paragraphs: ["expect.validators.p1"], code: "returns=lambda result: result[\"count\"] > 0" },
       { id: "models", title: "expect.models.title", paragraphs: ["expect.models.p1"] },
+      { id: "conforms", title: "expect.conforms.title", paragraphs: ["expect.conforms.p1"], code: "from niltest import conforms_to\n\nreturns=conforms_to(list[User])\nreturns=conforms_to(Annotated[int, Field(gt=0)])" },
+      { id: "input-validation", title: "expect.inputs.title", paragraphs: ["expect.inputs.p1", "expect.inputs.p2"], code: `class Payload(BaseModel):
+    count: int
+
+@scenario("集計")
+@docs(case("辞書入力", given={"payload": {"count": 2}}, returns=4))
+def process(payload: Payload) -> int:
+    # case実行時、payloadは検証済みのPayloadモデル
+    return payload.count * 2` },
     ],
   },
   {
@@ -158,7 +171,7 @@ pip3 install niltest` },
     title: "prod.title",
     lead: "prod.lead",
     sections: [
-      { id: "enable", title: "prod.enable.title", paragraphs: ["prod.enable.p1"], code: "# macOS / Linux\nPRODUCTION=true python app.py\n\n# Windows PowerShell\n$env:PRODUCTION = \"true\"; python app.py" },
+      { id: "enable", title: "prod.enable.title", paragraphs: ["prod.enable.p1"], code: "# macOS / Linux\nNILTEST_MODE=test python app.py\n\n# Windows PowerShell\n$env:NILTEST_MODE = \"test\"; python app.py\n\n# mockを使う場合は test を mock に変更" },
       { id: "declared", title: "prod.declared.title", paragraphs: ["prod.declared.p1", "prod.declared.p2"], code: `from niltest import case, docs, scenario
 
 @scenario("配送料")
@@ -203,10 +216,11 @@ def shipping_fee(premium: bool) -> int:
     title: "api.title",
     lead: "api.lead",
     sections: [
-      { id: "configure", title: "api.configure.title", code: "configure(production=None, mode=None, language=None)", paragraphs: ["api.configure.p1"] },
+      { id: "configure", title: "api.configure.title", code: "configure(mode=None, language=None)", paragraphs: ["api.configure.p1"] },
       { id: "scenario", title: "api.scenario.title", code: "@scenario(title)", paragraphs: ["api.scenario.p1"] },
       { id: "case", title: "api.case.title", code: "expect.case(name, *, desc=\"\", given, returns)", paragraphs: ["api.case.p1"] },
       { id: "run", title: "api.run.title", code: "run_tests(*functions) -> RunResult", paragraphs: ["api.run.p1"] },
+      { id: "conforms", title: "api.conforms.title", code: "conforms_to(type_hint, *, strict=False) -> TypeExpectation", paragraphs: ["api.conforms.p1"] },
       { id: "locale", title: "api.locale.title", code: "register_locale(locale, messages, *, overwrite=False)", paragraphs: ["api.locale.p1"] },
     ],
   },
