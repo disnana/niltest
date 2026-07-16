@@ -229,7 +229,7 @@ jobs:
           name: ${{ needs.slsa-provenance.outputs.provenance-name }}
           path: provenance
       - name: Publish release, notes, and distributions
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ needs.pypi-version.outputs.local-version }}
           target_commitish: ${{ github.sha }}
