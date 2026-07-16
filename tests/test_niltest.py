@@ -23,11 +23,13 @@ def reset_niltest():
 
     cfg._PRODUCTION = False
     cfg._MODE = "MOCK"
+    cfg._LANGUAGE = "ja"
     ex.expect._pending.clear()
     sc._registry.clear()
     yield
     cfg._PRODUCTION = False
     cfg._MODE = "MOCK"
+    cfg._LANGUAGE = "ja"
     ex.expect._pending.clear()
     sc._registry.clear()
 
