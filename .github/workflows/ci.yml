@@ -94,7 +94,7 @@ jobs:
         id: slsa-subjects
         shell: bash
         run: echo "hashes=$(sha256sum dist/* | base64 -w0)" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: python-package
           path: dist/
