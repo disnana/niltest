@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="ja" data-theme="light"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="niltestの中心は、説明・モック・テストを別々に保守しないという考え方です。"><meta name="theme-color" content="#f8f8fb"><link rel="canonical" href="https://niltest.disnana.com/docs/concepts/"><meta property="og:type" content="website"><meta property="og:title" content="一度書いた例を、三度使う — niltest"><meta property="og:description" content="niltestの中心は、説明・モック・テストを別々に保守しないという考え方です。"><meta property="og:url" content="https://niltest.disnana.com/docs/concepts/"><meta name="twitter:card" content="summary_large_image"><title>一度書いた例を、三度使う — niltest docs</title><script>
+      (() => {
+        const saved = localStorage.getItem("niltest-theme");
+        const dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
+    </script><link rel="stylesheet" href="/_astro/CodeBlock.n-yMRCdi.css"></head> <body> <a class="skip-link" href="#content">本文へ移動</a> <header class="topbar"> <a class="brand" href="/" aria-label="niltest home"> <span class="brand-mark">nil</span><span>test</span> <span class="brand-docs">ドキュメント</span> </a> <div class="top-actions"> <button class="search-trigger" type="button" data-search-open> <span>ドキュメントを検索</span> <kbd>Ctrl K</kbd> </button> <details class="language-menu"> <summary aria-label="表示言語" title="表示言語"> <strong>JA</strong> </summary> <div class="language-popover"> <p>表示言語</p> <a href="/docs/concepts/" lang="ja" aria-current="page"> <span><strong>日本語</strong><small>JA</small></span> <span class="language-check" aria-hidden="true">✓</span> </a><a href="/docs/en/concepts/" lang="en"> <span><strong>English</strong><small>EN</small></span> <span class="language-check" aria-hidden="true"></span> </a> </div> </details> <button class="icon-button" type="button" data-theme-toggle aria-label="表示テーマを切り替える" title="表示テーマを切り替える">◐</button> <a class="github-link" href="https://github.com/disnana/niltest">GitHub</a> </div> </header> <div class="mobile-nav"> <details> <summary>メニュー</summary> <nav aria-label="Mobile documentation"> <section> <p>はじめに</p> <a href="/docs/">概要</a><a href="/docs/getting-started/">クイックスタート</a><a class="active" href="/docs/concepts/">考え方</a> </section><section> <p>基本機能</p> <a href="/docs/mocking/">モック</a><a href="/docs/testing/">テスト実行</a><a href="/docs/expectations/">期待値と検証</a> </section><section> <p>発展</p> <a href="/docs/async/">非同期関数</a><a href="/docs/production/">本番モード</a><a href="/docs/localization/">多言語化</a> </section><section> <p>応用レシピ</p> <a href="/docs/recipes/">応用レシピ</a> </section><section> <p>リファレンス</p> <a href="/docs/api/">APIリファレンス</a> </section> </nav> </details> </div> <div class="docs-shell"> <aside class="sidebar"> <nav aria-label="Documentation"> <a class="back-home" href="/">プロダクトホーム</a> <section class="nav-group"> <p>はじめに</p> <a href="/docs/"> <span>概要</span> </a><a href="/docs/getting-started/"> <span>クイックスタート</span> </a><a class="active" href="/docs/concepts/"> <span>考え方</span> </a> </section><section class="nav-group"> <p>基本機能</p> <a href="/docs/mocking/"> <span>モック</span> </a><a href="/docs/testing/"> <span>テスト実行</span> </a><a href="/docs/expectations/"> <span>期待値と検証</span> </a> </section><section class="nav-group"> <p>発展</p> <a href="/docs/async/"> <span>非同期関数</span> </a><a href="/docs/production/"> <span>本番モード</span> </a><a href="/docs/localization/"> <span>多言語化</span> </a> </section><section class="nav-group"> <p>応用レシピ</p> <a href="/docs/recipes/"> <span>応用レシピ</span> </a> </section><section class="nav-group"> <p>リファレンス</p> <a href="/docs/api/"> <span>APIリファレンス</span> </a> </section> </nav> <div class="sidebar-foot"> <code>pip install niltest</code> <span>v0.1 alpha</span> </div> </aside> <main id="content" tabindex="-1"> <article class="doc-article"> <div class="doc-layout"> <div class="doc-main"> <header class="page-header"> <p class="eyebrow">Core concepts</p> <h1>一度書いた例を、三度使う</h1> <p class="page-lead">niltestの中心は、説明・モック・テストを別々に保守しないという考え方です。</p>   </header> <div class="article-body"> <section id="one-source"> <h2><a href="#one-source">信頼できるひとつの例</a></h2> <p>ケースは入力、期待結果、名前、任意の説明を持ちます。エディタのdocstring、モック照合、実装チェックは同じケースを参照します。</p><p>例を関数先頭へ置くことで、コードレビュー時にも仕様と実装を同じ画面で確認できます。</p>    </section><section id="modes"> <h2><a href="#modes">3つの動作モード</a></h2>  <ul><li>MOCK: givenが一致したケースの固定値を返す</li><li>TEST: 本物の関数を実行し、returnsと比較する</li><li>PRODUCTION: デコレータをパススルーし、仕様ブロックをスキップする</li></ul>   </section><section id="pytest"> <h2><a href="#pytest">pytestとの関係</a></h2> <p>niltestは代表例を近くに置くための補助ツールです。境界値の網羅、fixture、統合テスト、例外の詳細検証にはpytestを併用してください。</p>   <aside class="note"><span aria-hidden="true">i</span><p>少数の説明的なケースはniltestへ、網羅的な品質保証はpytestへ、という分担が扱いやすい設計です。</p></aside> </section> </div> </div> <aside class="toc"> <p>このページの内容</p> <a href="#one-source">信頼できるひとつの例</a><a href="#modes">3つの動作モード</a><a href="#pytest">pytestとの関係</a> <a class="edit-link" href="https://github.com/disnana/niltest/tree/main/docs-site/src/locales/catalogs/ja.ts">GitHubで編集</a> </aside> </div> <nav class="pager" aria-label="Pagination"> <a href="/docs/getting-started/"><span>前へ</span><strong>クイックスタート</strong></a> <a class="next" href="/docs/mocking/"><span>次へ</span><strong>モック</strong></a> </nav> </article> </main> </div> <dialog class="search-dialog" data-search-dialog> <div class="search-box"> <label> <input type="search" placeholder="ページ名を入力…" autocomplete="off" data-search-input> <kbd>Esc</kbd> </label> <div class="search-results" data-search-results></div> <p class="search-empty" data-search-empty hidden>一致するページがありません</p> </div> </dialog> <script>(function(){const searchItems = [{"title":"概要","group":"はじめに","href":"/docs/"},{"title":"クイックスタート","group":"はじめに","href":"/docs/getting-started/"},{"title":"考え方","group":"はじめに","href":"/docs/concepts/"},{"title":"モック","group":"基本機能","href":"/docs/mocking/"},{"title":"テスト実行","group":"基本機能","href":"/docs/testing/"},{"title":"期待値と検証","group":"基本機能","href":"/docs/expectations/"},{"title":"非同期関数","group":"発展","href":"/docs/async/"},{"title":"本番モード","group":"発展","href":"/docs/production/"},{"title":"多言語化","group":"発展","href":"/docs/localization/"},{"title":"応用レシピ","group":"応用レシピ","href":"/docs/recipes/"},{"title":"APIリファレンス","group":"リファレンス","href":"/docs/api/"}];
+
+      const root = document.documentElement;
+      document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
+        const next = root.dataset.theme === "dark" ? "light" : "dark";
+        root.dataset.theme = next;
+        localStorage.setItem("niltest-theme", next);
+      });
+
+      const dialog = document.querySelector("[data-search-dialog]");
+      const input = document.querySelector("[data-search-input]");
+      const results = document.querySelector("[data-search-results]");
+      const empty = document.querySelector("[data-search-empty]");
+
+      function renderSearch(query = "") {
+        const normalized = query.trim().toLocaleLowerCase();
+        const matches = searchItems.filter((item) =>
+          `${item.title} ${item.group}`.toLocaleLowerCase().includes(normalized),
+        );
+        results.replaceChildren(...matches.map((item) => {
+          const link = document.createElement("a");
+          link.href = item.href;
+          const title = document.createElement("strong");
+          title.textContent = item.title;
+          const group = document.createElement("span");
+          group.textContent = item.group;
+          link.append(title, group);
+          return link;
+        }));
+        empty.hidden = matches.length > 0;
+      }
+
+      function openSearch() {
+        renderSearch();
+        dialog.showModal();
+        requestAnimationFrame(() => input.focus());
+      }
+
+      document.querySelector("[data-search-open]")?.addEventListener("click", openSearch);
+      input?.addEventListener("input", (event) => renderSearch(event.target.value));
+      document.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+          event.preventDefault();
+          openSearch();
+        }
+        if (event.key === "Escape" && dialog.open) dialog.close();
+      });
+      dialog?.addEventListener("click", (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const code = button.closest(".code-block")?.querySelector("code")?.textContent ?? "";
+          await navigator.clipboard.writeText(code);
+          const original = button.textContent;
+          button.textContent = button.dataset.copied;
+          button.classList.add("copied");
+          setTimeout(() => { button.textContent = original; button.classList.remove("copied"); }, 2200);
+        });
+      });
+    })();</script></body> </html> <script type="module">document.querySelector(`[data-copy-install]`)?.addEventListener(`click`,async e=>{let t=e.currentTarget;if(!(t instanceof HTMLButtonElement))return;let n=t.closest(`.quick-install`)?.querySelector(`code`)?.textContent??`pip install niltest`;await navigator.clipboard.writeText(n);let r=t.textContent;t.textContent=document.documentElement.lang===`ja`?`コピーしました ✓`:`Copied ✓`,t.classList.add(`copied`),setTimeout(()=>{t.classList.remove(`copied`),t.textContent=r},2200)});</script>
