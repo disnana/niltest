@@ -13,6 +13,8 @@ pytest_plugins = ["pytester"]
 def clear_registry(monkeypatch: pytest.MonkeyPatch) -> None:
     # pytester decodes subprocess output as UTF-8; force the same encoding on Windows.
     monkeypatch.setenv("PYTHONUTF8", "1")
+    # Keep nested runs independent from whichever plugins happen to be installed.
+    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
     _registry.clear()
     yield
     _registry.clear()
@@ -35,12 +37,10 @@ def test_pytest_plugin_collects_each_case(pytester: pytest.Pytester) -> None:
     pytester.syspathinsert(pytester.path)
 
     result = pytester.runpytest_subprocess(
+        "-p",
+        "niltest_pytest",
         "--niltest",
         "--niltest-module=plugin_specs",
-        "-p",
-        "no:asyncio",
-        "-p",
-        "no:cov",
         "-vv",
     )
 
@@ -57,7 +57,7 @@ def test_pytest_plugin_is_inert_without_flag(pytester: pytest.Pytester) -> None:
     )
     pytester.syspathinsert(pytester.path)
 
-    result = pytester.runpytest_subprocess("-p", "no:asyncio", "-p", "no:cov", "-q")
+    result = pytester.runpytest_subprocess("-p", "niltest_pytest", "-q")
     result.assert_outcomes(passed=1)
 
 
@@ -75,7 +75,7 @@ def test_pytest_plugin_imports_modules_from_configuration(pytester: pytest.Pytes
     pytester.makeini("[pytest]\nniltest_modules = configured_specs\n")
     pytester.syspathinsert(pytester.path)
 
-    result = pytester.runpytest_subprocess("-p", "no:asyncio", "-p", "no:cov", "--niltest", "-q")
+    result = pytester.runpytest_subprocess("-p", "niltest_pytest", "--niltest", "-q")
     result.assert_outcomes(passed=1)
 
 
@@ -94,12 +94,10 @@ def test_pytest_failure_is_written_to_junit(pytester: pytest.Pytester) -> None:
     report = pytester.path / "report.xml"
 
     result = pytester.runpytest_subprocess(
+        "-p",
+        "niltest_pytest",
         "--niltest",
         "--niltest-module=failing_specs",
-        "-p",
-        "no:asyncio",
-        "-p",
-        "no:cov",
         f"--junitxml={report}",
         "-q",
     )
