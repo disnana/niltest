@@ -45,7 +45,7 @@ class Expect:
     """
     開発・テストモード時に仕様ケースを収集・評価するオブジェクト。
 
-    本番環境（PRODUCTION=True）では `bool(expect)` が False を返すため、
+    ``production`` モードでは `bool(expect)` が False を返すため、
     `if expect:` ブロックごとスキップされ、真偽判定だけが実行されます。
     """
 
@@ -75,7 +75,7 @@ class Expect:
     # bool 評価 — 本番では False、開発では True
     # ------------------------------------------------------------------
     def __bool__(self) -> bool:
-        return not _config._PRODUCTION
+        return not _config.is_production()
 
     # ------------------------------------------------------------------
     # 仕様ケースの登録
@@ -97,7 +97,7 @@ class Expect:
             given:   代表的な入力引数を kwargs 形式で指定
             returns: そのときに期待する戻り値
         """
-        if _config._PRODUCTION:
+        if _config.is_production():
             return
 
         c = _Case(name, desc=desc, given=given, returns=returns)
@@ -105,7 +105,7 @@ class Expect:
 
         # MOCK モード: 現在の呼び出し引数と given が一致したら即返却
         # __DOC_SCAN__ モードや、callable/型のみ returns はモックとして使えないのでスキップ
-        if _config._MODE == "MOCK" and can_use_as_mock(returns):
+        if _config._MODE == "mock" and can_use_as_mock(returns):
             ctx: dict[str, Any] | None = _local.call_kwargs
             if ctx is not None and ctx == given:
                 raise _MockReturn(returns)

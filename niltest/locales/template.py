@@ -17,4 +17,11 @@ MESSAGES = {
     "fields_mismatch": "TODO\n  expected={expected}\n  actual  ={actual}",
     "validator_false": "TODO\n  actual={actual!r}",
     "validator_error": "TODO {error}",
+    "inspect_scenario": "TODO",
+    "inspect_returns": "TODO",
+    "inspect_cases": "TODO {count} TODO {mockable}",
+    "inspect_untyped": "TODO",
+    "inspect_none": "TODO",
+    "inspect_valid": "TODO",
+    "inspect_invalid": "TODO",
 }

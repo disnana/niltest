@@ -27,8 +27,8 @@ niltest
 
 動作モード
 ----------
-- PRODUCTION=true  : デコレータはパススルー、仕様ブロックは真偽判定だけでスキップ
-- MODE=MOCK        : given に一致した引数のとき returns を即返却
+- NILTEST_MODE=production : 安全な既定値。デコレータはパススルー
+- NILTEST_MODE=mock       : given に一致した引数のとき returns を即返却
 - niltest run      : 定義されたケースで自動テストを実行
 """
 
@@ -40,6 +40,7 @@ from ._expect import expect
 from ._i18n import register_locale
 from ._result import CaseResult, RunResult, ScenarioResult
 from ._scenario import _registry, scenario
+from ._typing import TypeExpectation, conforms_to
 
 
 class _RunnableScenario(Protocol):
@@ -67,12 +68,14 @@ __all__ = [
     "CaseResult",
     "RunResult",
     "ScenarioResult",
+    "TypeExpectation",
     "case",
     "configure",
+    "conforms_to",
     "docs",
     "expect",
     "register_locale",
     "run_tests",
     "scenario",
 ]
-__version__ = "1.0.0"
+__version__ = "1.1.0"

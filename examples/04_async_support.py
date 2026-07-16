@@ -11,7 +11,7 @@ import asyncio
 import niltest
 from niltest import expect, scenario
 
-niltest.configure(mode="MOCK")
+niltest.configure(mode="mock")
 
 
 @scenario("非同期データ取得 API")
@@ -54,5 +54,5 @@ if __name__ == "__main__":
     print("\n=== テスト実行 ===")
     # テストランナーは同期関数なので、await せずに呼べる
     # (内部でイベントループを回して実行してくれます)
-    niltest.configure(mode="TEST")
+    niltest.configure(mode="test")
     niltest.run_tests(fetch_remote_data)

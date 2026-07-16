@@ -10,6 +10,7 @@ from contextlib import redirect_stdout
 from typing import Any
 
 from . import __version__, configure, run_tests
+from ._inspect import format_inspection, inspect_scenarios
 from ._scenario import _registry
 
 
@@ -44,18 +45,21 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("modules", nargs="+", help="Import path, for example: myapp.specs")
     run.add_argument("--language", "-l", help="Output locale, for example: en or ja")
     run.add_argument("--json", action="store_true", help="Print a machine-readable summary")
+    inspect_command = subparsers.add_parser(
+        "inspect", help="Show signatures, types, cases, and input diagnostics"
+    )
+    inspect_command.add_argument("modules", nargs="+", help="Import path to inspect")
+    inspect_command.add_argument("--language", "-l", help="Output locale")
+    inspect_command.add_argument("--json", action="store_true", help="Print JSON")
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     _configure_output_encoding()
     args = build_parser().parse_args(argv)
-    if args.command != "run":
-        return 2
-
     if args.language:
         configure(language=args.language)
-    configure(production=False, mode="TEST")
+    configure(mode="test")
 
     try:
         for module in args.modules:
@@ -71,6 +75,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not targets:
         print("niltest: imported modules did not register any scenarios", file=sys.stderr)
         return 2
+    if args.command == "inspect":
+        report = inspect_scenarios(targets)
+        if args.json:
+            print(json.dumps(report, ensure_ascii=False, indent=2, default=repr))
+        else:
+            print(format_inspection(report))
+        return 0 if report["valid"] else 1
+
     if args.json:
         with redirect_stdout(io.StringIO()):
             result = run_tests(*targets)

@@ -18,7 +18,7 @@ def reset_language():
 def test_english_output_and_docstring():
     from niltest import expect, scenario
 
-    niltest.configure(production=False, mode="MOCK", language="en")
+    niltest.configure(mode="mock", language="en")
 
     @scenario("Greeting")
     def greet(name: str) -> str:

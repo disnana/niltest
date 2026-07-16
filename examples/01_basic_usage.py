@@ -8,7 +8,7 @@ import niltest
 from niltest import expect, scenario
 
 # モックモードで起動
-niltest.configure(production=False, mode="MOCK")
+niltest.configure(mode="mock")
 
 
 @scenario("割引計算の仕様")
@@ -40,5 +40,5 @@ if __name__ == "__main__":
 
     print("\n=== テスト実行 ===")
     # 自動テスト実行
-    niltest.configure(mode="TEST")
+    niltest.configure(mode="test")
     niltest.run_tests(calculate_discount)

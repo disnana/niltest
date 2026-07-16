@@ -13,6 +13,7 @@ from ._docgen import build_docstring
 from ._expect import _local, _MockReturn, expect
 from ._i18n import translate
 from ._result import CaseResult, ScenarioResult
+from ._typing import prepare_case_inputs
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -24,13 +25,13 @@ def scenario(title: str) -> Callable[[F], F]:
     """
     関数を仕様検証可能な対象としてマークするデコレータ。
 
-    - PRODUCTION=True  : 元の関数をそのまま返します（ラッパーなし）
-    - PRODUCTION=False : ラッパーを適用し、モック・テスト・docstring生成を有効化します
+    - ``mode="production"`` : 元の関数をそのまま返します（ラッパーなし）
+    - ``mode="test"`` / ``"mock"`` : ラッパーを適用し、仕様機能を有効化します
     """
 
     def decorator(func: F) -> F:
         declared_cases = list(getattr(func, "__niltest_cases__", ()))
-        if _config._PRODUCTION:
+        if _config.is_production():
             return func
 
         cases: list[_Case] = declared_cases
@@ -38,7 +39,7 @@ def scenario(title: str) -> Callable[[F], F]:
         is_async = inspect.iscoroutinefunction(func)
 
         def _apply_declared_mock(call_kwargs: dict[str, Any]) -> None:
-            if _config._MODE != "MOCK":
+            if _config._MODE != "mock":
                 return
             for declared in declared_cases:
                 if declared.given == call_kwargs and can_use_as_mock(declared.returns):
@@ -47,7 +48,7 @@ def scenario(title: str) -> Callable[[F], F]:
         def _collect_all_cases(*args: Any, **kwargs: Any) -> None:
             nonlocal doc_built, cases
             prev_mode = _config._MODE
-            _config._MODE = "__DOC_SCAN__"
+            _config._MODE = "__doc_scan__"
             pending_token = expect._push_pending()
             call_token = _local.push(None)
 
@@ -165,15 +166,22 @@ def scenario(title: str) -> Callable[[F], F]:
             results: list[CaseResult] = []
 
             prev_mode = _config._MODE
-            _config._MODE = "TEST"
+            _config._MODE = "test"
 
             try:
                 for c in cases:
+                    prepared_given, input_issues = prepare_case_inputs(func, c.given)
+                    if input_issues:
+                        failed += 1
+                        reason = "invalid case input: " + "; ".join(input_issues)
+                        results.append(CaseResult(c.name, "error", reason))
+                        print(f"  [ERROR] {c.name}: {reason}")
+                        continue
                     try:
                         if is_async:
-                            actual = _run_sync(func(**c.given))
+                            actual = _run_sync(func(**prepared_given))
                         else:
-                            actual = func(**c.given)
+                            actual = func(**prepared_given)
 
                         ok, reason = returns_match(actual, c.returns)
                         status = "PASS" if ok else "FAIL"
@@ -197,6 +205,16 @@ def scenario(title: str) -> Callable[[F], F]:
             return ScenarioResult(title, tuple(results))
 
         wrapper.run_tests = run_tests  # type: ignore[attr-defined]
+
+        def get_cases() -> tuple[_Case, ...]:
+            nonlocal cases
+            if not cases:
+                _collect_via_probe()
+            return tuple(cases)
+
+        wrapper.__niltest_title__ = title  # type: ignore[attr-defined]
+        wrapper.__niltest_original__ = func  # type: ignore[attr-defined]
+        wrapper.__niltest_get_cases__ = get_cases  # type: ignore[attr-defined]
 
         if declared_cases:
             wrapper.__doc__ = build_docstring(func.__doc__ or "", title, declared_cases)

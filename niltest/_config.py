@@ -3,9 +3,13 @@ import os
 
 from ._i18n import is_registered_locale, normalize_locale
 
-# グローバル設定（モジュール内で共有する状態）
-_PRODUCTION: bool = os.getenv("PRODUCTION", "false").lower() == "true"
-_MODE: str = os.getenv("MODE", "MOCK").upper()
+_VALID_MODES = frozenset({"production", "test", "mock"})
+
+# Safe by default: importing an application must never make declared values act
+# as mocks unless the application explicitly opts in.
+_MODE: str = os.getenv("NILTEST_MODE", "production").lower()
+if _MODE not in _VALID_MODES:
+    raise ValueError(f"NILTEST_MODE must be one of: production, test, mock. Received {_MODE!r}.")
 
 
 def _detect_language() -> str:
@@ -16,7 +20,7 @@ def _detect_language() -> str:
         return candidate if is_registered_locale(candidate) else "en"
 
     # ``getlocale`` uses the platform's configured locale on Windows, macOS,
-    # and Linux.  It can be unset on minimal containers, hence the fallback.
+    # and Linux. It can be unset on minimal containers, hence the fallback.
     system_locale = locale.getlocale()[0]
     if system_locale:
         candidate = normalize_locale(system_locale)
@@ -27,29 +31,26 @@ def _detect_language() -> str:
 _LANGUAGE: str = _detect_language()
 
 
-def configure(
-    production: bool | None = None,
-    mode: str | None = None,
-    language: str | None = None,
-) -> None:
-    """
-    niltestの動作モードを設定します。
+def is_production() -> bool:
+    """Return whether niltest must be completely inert at runtime."""
+    return _MODE == "production"
+
+
+def configure(mode: str | None = None, language: str | None = None) -> None:
+    """Configure niltest before importing modules decorated with ``@scenario``.
 
     Args:
-        production: Trueにするとすべての検証コードがパススルーされます。
-                    デフォルトは環境変数 PRODUCTION から自動ロード。
-        mode:       "MOCK" または "TEST"。
-                    デフォルトは環境変数 MODE から自動ロード。
-        language:   出力言語。未指定なら OS の言語設定を使い、取得できない場合は英語。
-                    NILTEST_LANGUAGE で明示的に指定することも可能。
+        mode: ``"production"`` (the safe default), ``"test"``, or ``"mock"``.
+        language: Output language. Defaults to the operating-system language,
+            with English as the fallback. ``NILTEST_LANGUAGE`` can set it at
+            process start.
     """
-    global _PRODUCTION, _MODE, _LANGUAGE
-    if production is not None:
-        _PRODUCTION = production
+    global _MODE, _LANGUAGE
     if mode is not None:
-        normalized_mode = mode.upper()
-        if normalized_mode not in {"MOCK", "TEST"}:
-            raise ValueError("mode must be either 'MOCK' or 'TEST'.")
+        normalized_mode = mode.lower()
+        if normalized_mode not in _VALID_MODES:
+            allowed = ", ".join(sorted(_VALID_MODES))
+            raise ValueError(f"mode must be one of: {allowed}.")
         _MODE = normalized_mode
     if language is not None:
         normalized_language = normalize_locale(language)

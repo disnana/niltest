@@ -11,7 +11,7 @@ from dataclasses import dataclass
 import niltest
 from niltest import expect, scenario
 
-niltest.configure(mode="MOCK")
+niltest.configure(mode="mock")
 
 
 @dataclass
@@ -46,5 +46,5 @@ if __name__ == "__main__":
     print("User 1:", fetch_user(1))
 
     print("\n=== テスト実行 ===")
-    niltest.configure(mode="TEST")
+    niltest.configure(mode="test")
     niltest.run_tests(fetch_user)

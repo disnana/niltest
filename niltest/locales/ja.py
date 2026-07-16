@@ -11,4 +11,11 @@ MESSAGES = {
     "fields_mismatch": "フィールド不一致:\n  expected={expected}\n  actual  ={actual}",
     "validator_false": "バリデータが False を返しました\n  actual={actual!r}",
     "validator_error": "バリデータ例外: {error}",
+    "inspect_scenario": "シナリオ",
+    "inspect_returns": "戻り値",
+    "inspect_cases": "ケース: {count} (モック可能: {mockable})",
+    "inspect_untyped": "型注釈のない引数",
+    "inspect_none": "なし",
+    "inspect_valid": "正常",
+    "inspect_invalid": "不正",
 }

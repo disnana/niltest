@@ -20,7 +20,7 @@ def test_cli_reconfigures_legacy_windows_stream_to_utf8() -> None:
 def test_run_tests_returns_machine_readable_result():
     from niltest import expect, scenario
 
-    niltest.configure(production=False, mode="MOCK", language="en")
+    niltest.configure(mode="mock", language="en")
 
     @scenario("Double")
     def double(value: int) -> int:

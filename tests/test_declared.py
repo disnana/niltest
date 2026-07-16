@@ -15,7 +15,8 @@ def test_docs_preserves_function_identity_and_attaches_cases() -> None:
     assert decorated.__niltest_cases__ == (declared_case,)  # type: ignore[attr-defined]
 
 
-def test_declared_cases_do_not_execute_function_during_decoration() -> None:
+def test_declared_cases_do_not_execute_function_during_decoration(monkeypatch) -> None:
+    monkeypatch.setattr(niltest._config, "_MODE", "test")
     calls = 0
 
     @scenario("shipping")
@@ -30,6 +31,8 @@ def test_declared_cases_do_not_execute_function_during_decoration() -> None:
 
 
 def test_declared_cases_mock_and_test(monkeypatch) -> None:
+    monkeypatch.setattr(niltest._config, "_MODE", "mock")
+
     @scenario("shipping")
     @docs(
         case("premium", given={"premium": True}, returns=0),
@@ -38,14 +41,14 @@ def test_declared_cases_mock_and_test(monkeypatch) -> None:
     def shipping(premium: bool) -> int:
         return 0 if premium else 500
 
-    monkeypatch.setattr(niltest._config, "_MODE", "MOCK")
+    monkeypatch.setattr(niltest._config, "_MODE", "mock")
     assert shipping(True) == 0
-    monkeypatch.setattr(niltest._config, "_MODE", "NORMAL")
+    monkeypatch.setattr(niltest._config, "_MODE", "test")
     assert shipping.run_tests().passed == 2  # type: ignore[attr-defined]
 
 
 def test_declared_production_returns_original_function(monkeypatch) -> None:
-    monkeypatch.setattr(niltest._config, "_PRODUCTION", True)
+    monkeypatch.setattr(niltest._config, "_MODE", "production")
 
     def original(value: int) -> int:
         return value + 1

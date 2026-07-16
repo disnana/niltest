@@ -14,7 +14,7 @@ import uuid
 import niltest
 from niltest import expect, scenario
 
-niltest.configure(mode="MOCK")
+niltest.configure(mode="mock")
 
 
 @scenario("トークン生成")
@@ -56,5 +56,5 @@ if __name__ == "__main__":
     print("ID:", generate_id("usr"))
 
     print("\n=== テスト実行 ===")
-    niltest.configure(mode="TEST")
+    niltest.configure(mode="test")
     niltest.run_tests(create_token, generate_id)

@@ -11,4 +11,11 @@ MESSAGES = {
     "fields_mismatch": "Field mismatch:\n  expected={expected}\n  actual  ={actual}",
     "validator_false": "Validator returned False\n  actual={actual!r}",
     "validator_error": "Validator error: {error}",
+    "inspect_scenario": "Scenario",
+    "inspect_returns": "Returns",
+    "inspect_cases": "Cases: {count} (mockable: {mockable})",
+    "inspect_untyped": "Untyped arguments",
+    "inspect_none": "none",
+    "inspect_valid": "OK",
+    "inspect_invalid": "INVALID",
 }

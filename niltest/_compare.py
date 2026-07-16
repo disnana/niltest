@@ -5,6 +5,7 @@ from typing import Any
 
 from . import _config
 from ._i18n import translate
+from ._typing import TypeExpectation, format_type_hint, validate_type
 
 
 def returns_match(actual: Any, expected: Any) -> tuple[bool, str]:
@@ -21,6 +22,10 @@ def returns_match(actual: Any, expected: Any) -> tuple[bool, str]:
     Returns:
         (matched: bool, reason: str)  reason は FAIL 時の説明文
     """
+    if isinstance(expected, TypeExpectation):
+        matched, reason = validate_type(actual, expected)
+        return matched, "" if matched else f"type validation failed: {reason}"
+
     # ── パターン 0: callable（バリデータ関数・lambda）───────────────
     # ランダムデータや複雑な条件のとき: returns=lambda r: r["id"] > 0
     if callable(expected) and not isinstance(expected, type):
@@ -91,7 +96,7 @@ def can_use_as_mock(returns: Any) -> bool:
     returns がモック値として使えるか判定します。
     callable / 型のみ の場合はモック値として返す意味がないため False。
     """
-    if isinstance(returns, type):
+    if isinstance(returns, (type, TypeExpectation)):
         return False  # 型チェックのみ → 実際の値がない
     if callable(returns) and not isinstance(returns, type):
         return False  # バリデータ関数 → 返す値がない
@@ -100,6 +105,9 @@ def can_use_as_mock(returns: Any) -> bool:
 
 def format_returns(returns: Any) -> str:
     """docstring 用に returns を読みやすい文字列にフォーマットします。"""
+    if isinstance(returns, TypeExpectation):
+        strict = ", strict=True" if returns.strict else ""
+        return f"conforms_to({format_type_hint(returns.type_hint)}{strict})"
     if isinstance(returns, type):
         return f"{returns.__name__} ({translate(_config._LANGUAGE, 'type_check_only')})"
     if callable(returns):
