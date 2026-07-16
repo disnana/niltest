@@ -1,6 +1,6 @@
 # niltest
 
-本番環境でのパフォーマンス影響ゼロを実現しながら、  
+本番環境ではデコレータのラッパーなしで動作しながら、
 **仕様の可視化・モック・自動テストを関数1つの中に完結させる** Python ライブラリ。
 
 ---
@@ -90,7 +90,7 @@ niltest.run_tests(get_user)
 
 | ドキュメント | 内容 |
 |---|---|
-| [concepts.md](./concepts.md) | ゼロコスト設計の仕組みと技術的な背景 |
+| [concepts.md](./concepts.md) | 本番パススルー設計の仕組みと技術的な背景 |
 | [api.md](./api.md) | APIリファレンス（configure / scenario / expect.case / run_tests） |
 | [modes.md](./modes.md) | 3つの動作モード（PRODUCTION / MOCK / TEST）の詳細 |
 | [i18n.md](./i18n.md) | 日本語・英語の切替と独自ロケールの追加方法 |

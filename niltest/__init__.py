@@ -1,7 +1,7 @@
 """
 niltest
 =======
-本番環境でのパフォーマンス影響ゼロを実現しながら、
+本番環境ではラッパーなしで動作しながら、
 コードの可視性・テスト・モックを一体化する Python ライブラリ。
 
 クイックスタート
@@ -27,7 +27,7 @@ niltest
 
 動作モード
 ----------
-- PRODUCTION=true  : すべての検証コードが完全スキップ（0コスト）
+- PRODUCTION=true  : デコレータはパススルー、仕様ブロックは真偽判定だけでスキップ
 - MODE=MOCK        : given に一致した引数のとき returns を即返却
 - niltest run      : 定義されたケースで自動テストを実行
 """
@@ -36,9 +36,10 @@ from ._config import configure
 from ._expect import expect
 from ._i18n import register_locale
 from ._scenario import scenario, _registry
+from ._result import CaseResult, RunResult, ScenarioResult
 
 
-def run_tests(*funcs: object) -> None:
+def run_tests(*funcs: object) -> RunResult:
     """
     指定した @scenario 関数、またはすべての登録済み @scenario 関数に対して
     定義済みの expect.case をテストとして自動実行します。
@@ -48,10 +49,15 @@ def run_tests(*funcs: object) -> None:
         niltest.run_tests(my_function)    # 特定の関数だけ実行
     """
     targets = list(funcs) if funcs else list(_registry.values())
+    results: list[ScenarioResult] = []
     for t in targets:
         if hasattr(t, "run_tests"):
-            t.run_tests()  # type: ignore[union-attr]
+            results.append(t.run_tests())  # type: ignore[union-attr]
+    return RunResult(tuple(results))
 
 
-__all__ = ["configure", "expect", "register_locale", "scenario", "run_tests"]
+__all__ = [
+    "CaseResult", "RunResult", "ScenarioResult", "configure", "expect",
+    "register_locale", "scenario", "run_tests",
+]
 __version__ = "0.1.0"

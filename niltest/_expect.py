@@ -1,5 +1,5 @@
 from __future__ import annotations
-import threading
+from contextvars import ContextVar, Token
 from typing import Any
 
 from . import _config
@@ -15,8 +15,33 @@ class _MockReturn(BaseException):
         self.value = value
 
 
-# スレッドセーフな呼び出しコンテキスト
-_local = threading.local()
+_call_kwargs: ContextVar[dict[str, Any] | None] = ContextVar(
+    "niltest_call_kwargs", default=None
+)
+_pending_cases: ContextVar[list[_Case] | None] = ContextVar(
+    "niltest_pending_cases", default=None
+)
+
+
+class _ExecutionContext:
+    """Task-local call state that also works for threads and nested scenarios."""
+
+    @property
+    def call_kwargs(self) -> dict[str, Any] | None:
+        return _call_kwargs.get()
+
+    @call_kwargs.setter
+    def call_kwargs(self, value: dict[str, Any] | None) -> None:
+        _call_kwargs.set(value)
+
+    def push(self, value: dict[str, Any] | None) -> Token:
+        return _call_kwargs.set(value)
+
+    def pop(self, token: Token) -> None:
+        _call_kwargs.reset(token)
+
+
+_local = _ExecutionContext()
 
 
 class Expect:
@@ -24,12 +49,30 @@ class Expect:
     開発・テストモード時に仕様ケースを収集・評価するオブジェクト。
 
     本番環境（PRODUCTION=True）では `bool(expect)` が False を返すため、
-    `if expect:` ブロックごとスキップされ、実行時コストはゼロになります。
+    `if expect:` ブロックごとスキップされ、真偽判定だけが実行されます。
     """
 
     def __init__(self) -> None:
-        # 直近の呼び出しで登録されたケース一覧（docstring生成・テスト実行に使用）
-        self._pending: list[_Case] = []
+        # State is created lazily in the active context.
+        pass
+
+    @property
+    def _pending(self) -> list[_Case]:
+        pending = _pending_cases.get()
+        if pending is None:
+            pending = []
+            _pending_cases.set(pending)
+        return pending
+
+    @_pending.setter
+    def _pending(self, value: list[_Case]) -> None:
+        _pending_cases.set(value)
+
+    def _push_pending(self) -> Token:
+        return _pending_cases.set([])
+
+    def _pop_pending(self, token: Token) -> None:
+        _pending_cases.reset(token)
 
     # ------------------------------------------------------------------
     # bool 評価 — 本番では False、開発では True

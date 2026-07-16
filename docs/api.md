@@ -9,7 +9,7 @@
 
 ```python
 niltest.configure(
-    production: bool | None = None,  # True で本番モード（ゼロコスト）
+    production: bool | None = None,  # True で本番パススルーモード
     mode: str | None = None,         # "MOCK" または "TEST"
 )
 ```
@@ -59,7 +59,7 @@ def my_func(...) -> ...:
 ### 本番環境での挙動
 
 `PRODUCTION=true` の場合、デコレータは元の関数を**そのまま返します**。  
-ラッパーは生成されず、呼び出し時のオーバーヘッドはゼロです。
+ラッパーは生成されません。関数内に記述した `if expect:` の真偽判定コストだけが残ります。
 
 ---
 
@@ -152,6 +152,8 @@ UUID・タイムスタンプ・乱数など**不定な値を含む戻り値**を
 niltest.run_tests(*funcs)
 ```
 
+戻り値は `RunResult` です。`success`、`passed`、`failed`、`scenarios` を参照でき、`to_dict()` でJSON化可能な辞書に変換できます。
+
 ### 引数
 
 | 引数 | 説明 |
@@ -184,3 +186,14 @@ niltest.run_tests()
 各 `expect.case` について `func(**given)` を実行し、  
 戻り値が `returns` と `==` で一致するかを確認します。  
 一致しない場合は `given`・期待値・実際の値を表示します。
+
+---
+
+## CLI
+
+```bash
+niltest run your_package.specs --language ja
+niltest run your_package.specs --json
+```
+
+終了コードは、全ケース成功が `0`、仕様の失敗が `1`、引数またはモジュール読込エラーが `2` です。`--json` の場合は人間向け進捗を抑制し、機械可読な結果だけを標準出力へ出します。

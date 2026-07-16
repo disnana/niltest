@@ -1,5 +1,5 @@
 """
-本番環境（PRODUCTION=true）でのゼロコスト検証ベンチマーク。
+本番環境（PRODUCTION=true）でのオーバーヘッド検証ベンチマーク。
 インポート前に環境変数を設定することで、
 デコレータが最初からパススルーとして機能します。
 """
@@ -42,13 +42,10 @@ N = 1_000_000
 t_raw = timeit.timeit(lambda: raw(5_000, "member"), number=N)
 t_dec = timeit.timeit(lambda: process_payment(5_000, "member"), number=N)
 
-print(f"[niltest 本番ゼロコスト検証] {N:,} 回呼び出し")
+print(f"[niltest 本番オーバーヘッド検証] {N:,} 回呼び出し")
 print(f"  プレーン関数 : {t_raw:.4f}s")
 print(f"  niltest 関数 : {t_dec:.4f}s")
 diff_ns = (t_dec - t_raw) / N * 1e9
 print(f"  1回あたり差分: {diff_ns:.1f}ns")
 print()
-if abs(diff_ns) < 10:
-    print("  -> 誤差範囲内。ゼロコストを実証済み。")
-else:
-    print(f"  -> 警告: {diff_ns:.1f}ns のオーバーヘッドが検出されました。")
+print("  -> デコレータのラッパーはありません。差分は if expect: の真偽判定コストです。")

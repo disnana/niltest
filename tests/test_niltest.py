@@ -424,6 +424,24 @@ class TestDocstring:
 # ─────────────────────────────────────────────────────────────
 class TestAsyncScenarioMock:
     @pytest.mark.asyncio
+    async def test_concurrent_calls_keep_separate_contexts(self):
+        import asyncio
+        import niltest
+        from niltest import scenario, expect
+
+        niltest.configure(production=False, mode="MOCK")
+
+        @scenario("concurrent")
+        async def label(value: int) -> str:
+            await asyncio.sleep(0)
+            if expect:
+                expect.case("one", given={"value": 1}, returns="one")
+                expect.case("two", given={"value": 2}, returns="two")
+            return "real"
+
+        assert await asyncio.gather(label(1), label(2)) == ["one", "two"]
+
+    @pytest.mark.asyncio
     async def test_async_mock_match(self):
         import niltest
         from niltest import scenario, expect
@@ -495,6 +513,27 @@ class TestAsyncRunTests:
 # 8. エッジケース・カバレッジ補完
 # ─────────────────────────────────────────────────────────────
 class TestEdgeCases:
+    def test_nested_scenario_restores_outer_context(self):
+        import niltest
+        from niltest import scenario, expect
+
+        niltest.configure(production=False, mode="MOCK")
+
+        @scenario("inner")
+        def inner(value: int) -> str:
+            if expect:
+                expect.case("inner case", given={"value": 1}, returns="inner mock")
+            return "inner real"
+
+        @scenario("outer")
+        def outer(value: int) -> str:
+            inner(value)
+            if expect:
+                expect.case("outer case", given={"value": 1}, returns="outer mock")
+            return "outer real"
+
+        assert outer(1) == "outer mock"
+
     def test_expect_case_in_production(self):
         # _expect.py の 61 行目: if _config._PRODUCTION: return
         import niltest
@@ -542,4 +581,3 @@ class TestEdgeCases:
                 assert "cannot be called from within an already running" in str(e)
 
         asyncio.run(main())
-

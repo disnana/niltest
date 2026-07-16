@@ -14,8 +14,17 @@ Registers an executable example. `given` is a keyword-argument dictionary. `retu
 
 ## `run_tests(*functions)`
 
-Runs cases for the supplied decorated functions, or for all registered scenarios when no functions are supplied. It reports results to standard output; it does not raise on failed cases.
+Runs cases for the supplied decorated functions, or for all registered scenarios when no functions are supplied. It returns a `RunResult` with `success`, `passed`, `failed`, `scenarios`, and `to_dict()` while retaining human-readable terminal output.
 
 ## `register_locale(locale, messages, *, overwrite=False)`
 
 Registers a complete custom message catalog. See [Localization](./i18n.md) for the required keys and an example.
+
+## CLI
+
+```bash
+niltest run your_package.specs --language en
+niltest run your_package.specs --json
+```
+
+Exit codes are `0` when all cases pass, `1` for specification failures, and `2` for usage or module-import errors. JSON mode suppresses progress text and writes one machine-readable result to standard output.

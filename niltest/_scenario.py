@@ -10,6 +10,7 @@ from ._docgen import build_docstring
 from ._case import _Case
 from ._compare import returns_match
 from ._i18n import translate
+from ._result import CaseResult, ScenarioResult
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -21,7 +22,7 @@ def scenario(title: str) -> Callable[[F], F]:
     """
     関数を仕様検証可能な対象としてマークするデコレータ。
 
-    - PRODUCTION=True  : 元の関数をそのまま返します（ラッパーなし・ゼロコスト）
+    - PRODUCTION=True  : 元の関数をそのまま返します（ラッパーなし）
     - PRODUCTION=False : ラッパーを適用し、モック・テスト・docstring生成を有効化します
     """
     def decorator(func: F) -> F:
@@ -36,8 +37,8 @@ def scenario(title: str) -> Callable[[F], F]:
             nonlocal doc_built, cases
             prev_mode = _config._MODE
             _config._MODE = "__DOC_SCAN__"
-            expect._pending.clear()
-            _local.call_kwargs = None
+            pending_token = expect._push_pending()
+            call_token = _local.push(None)
 
             try:
                 # ドライラン実行。async の場合はイベントループで回す
@@ -51,8 +52,9 @@ def scenario(title: str) -> Callable[[F], F]:
                 pass
             finally:
                 _config._MODE = prev_mode
-
-            cases = expect._flush()
+                cases = expect._flush()
+                _local.pop(call_token)
+                expect._pop_pending(pending_token)
             if cases:
                 wrapper.__doc__ = build_docstring(
                     func.__doc__ or "", title, cases
@@ -98,18 +100,19 @@ def scenario(title: str) -> Callable[[F], F]:
                 bound = sig.bind(*args, **kwargs)
                 bound.apply_defaults()
                 call_kwargs = dict(bound.arguments)
+                pending_token = expect._push_pending()
 
                 if not doc_built:
                     _collect_all_cases(*args, **kwargs)
 
-                _local.call_kwargs = call_kwargs
+                call_token = _local.push(call_kwargs)
                 try:
                     return await func(*args, **kwargs)
                 except _MockReturn as e:
                     return e.value
                 finally:
-                    _local.call_kwargs = None
-                    expect._pending.clear()
+                    _local.pop(call_token)
+                    expect._pop_pending(pending_token)
         else:
             @functools.wraps(func)
             def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -118,65 +121,73 @@ def scenario(title: str) -> Callable[[F], F]:
                 bound = sig.bind(*args, **kwargs)
                 bound.apply_defaults()
                 call_kwargs = dict(bound.arguments)
+                pending_token = expect._push_pending()
 
                 if not doc_built:
                     _collect_all_cases(*args, **kwargs)
 
-                _local.call_kwargs = call_kwargs
+                call_token = _local.push(call_kwargs)
                 try:
                     return func(*args, **kwargs)
                 except _MockReturn as e:
                     return e.value
                 finally:
-                    _local.call_kwargs = None
-                    expect._pending.clear()
+                    _local.pop(call_token)
+                    expect._pop_pending(pending_token)
 
         # ─── 自動テスト実行用メソッドをラッパーに付与 ───
-        def run_tests() -> None:
+        def run_tests() -> ScenarioResult:
             nonlocal cases
             if not cases:
                 _collect_via_probe()
             if not cases:
                 print(f"[niltest] '{title}': {translate(_config._LANGUAGE, 'no_cases')}")
-                return
+                return ScenarioResult(title)
 
             print(f"\n[niltest] {translate(_config._LANGUAGE, 'scenario')}: {title}")
             print("-" * 50)
             passed = 0
             failed = 0
+            results: list[CaseResult] = []
 
             prev_mode = _config._MODE
             _config._MODE = "TEST"
 
-            for c in cases:
-                try:
-                    if is_async:
-                        actual = _run_sync(func(**c.given))
-                    else:
-                        actual = func(**c.given)
+            try:
+                for c in cases:
+                    try:
+                        if is_async:
+                            actual = _run_sync(func(**c.given))
+                        else:
+                            actual = func(**c.given)
 
-                    ok, reason = returns_match(actual, c.returns)
-                    status = "PASS" if ok else "FAIL"
-                    if ok:
-                        passed += 1
-                    else:
+                        ok, reason = returns_match(actual, c.returns)
+                        status = "PASS" if ok else "FAIL"
+                        if ok:
+                            passed += 1
+                            results.append(CaseResult(c.name, "passed"))
+                        else:
+                            failed += 1
+                            results.append(CaseResult(c.name, "failed", reason))
+                        print(f"  [{status}] {c.name}")
+                        if not ok:
+                            print(f"         {reason}")
+                    except Exception as e:
                         failed += 1
-                    print(f"  [{status}] {c.name}")
-                    if not ok:
-                        print(f"         {reason}")
-                except Exception as e:
-                    failed += 1
-                    print(f"  [ERROR] {c.name}: {e}")
-
-            _config._MODE = prev_mode
+                        reason = f"{type(e).__name__}: {e}"
+                        results.append(CaseResult(c.name, "error", reason))
+                        print(f"  [ERROR] {c.name}: {e}")
+            finally:
+                _config._MODE = prev_mode
             print(f"\n  {translate(_config._LANGUAGE, 'result', passed=passed, failed=failed)}")
+            return ScenarioResult(title, tuple(results))
 
         wrapper.run_tests = run_tests  # type: ignore[attr-defined]
 
         # 早期収集を試行
         _try_early_collect()
 
-        _registry[func.__qualname__] = wrapper
+        _registry[f"{func.__module__}.{func.__qualname__}"] = wrapper
         return wrapper  # type: ignore[return-value]
 
     return decorator
@@ -192,4 +203,7 @@ def _run_sync(coro: Any) -> Any:
         # Jupyterやuvicornなど既存のループ上で呼ばれた場合、nest_asyncio等がないとブロックできない。
         # 通常の pytest や CLI での実行を想定し、ここではタスクを生成して同期待ちする簡易ハックは行わず、
         # asyncio.run に近い挙動ができるか試みる。通常はここには来ない。
+        close = getattr(coro, "close", None)
+        if close is not None:
+            close()
         raise RuntimeError("run_tests() cannot be called from within an already running asyncio event loop.")

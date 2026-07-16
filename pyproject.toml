@@ -5,12 +5,36 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "niltest"
 version = "0.1.0"
-description = "本番環境でのオーバーヘッドがゼロの仕様可視化・モック・テストライブラリ"
+description = "Executable specifications, mocks, and lightweight tests next to your Python code"
+readme = "README.md"
+license = "MIT"
 authors = [
     {name = "Disnana", email = "support@disnana.com"}
 ]
 requires-python = ">=3.9"
 dependencies = []
+keywords = ["testing", "mock", "specification", "developer-tools"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/disnana/niltest"
+Repository = "https://github.com/disnana/niltest"
+Issues = "https://github.com/disnana/niltest/issues"
+
+[project.scripts]
+niltest = "niltest._cli:main"
+
+[tool.setuptools.packages.find]
+include = ["niltest*", "examples*"]
+
+[tool.setuptools.package-data]
+niltest = ["py.typed"]
 
 [project.optional-dependencies]
 dev = [
