@@ -34,6 +34,7 @@ niltest
 
 from ._config import configure
 from ._expect import expect
+from ._i18n import register_locale
 from ._scenario import scenario, _registry
 
 
@@ -52,6 +53,5 @@ def run_tests(*funcs: object) -> None:
             t.run_tests()  # type: ignore[union-attr]
 
 
-__all__ = ["configure", "expect", "scenario", "run_tests"]
+__all__ = ["configure", "expect", "register_locale", "scenario", "run_tests"]
 __version__ = "0.1.0"
-

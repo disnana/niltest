@@ -93,3 +93,5 @@ niltest.run_tests(get_user)
 | [concepts.md](./concepts.md) | ゼロコスト設計の仕組みと技術的な背景 |
 | [api.md](./api.md) | APIリファレンス（configure / scenario / expect.case / run_tests） |
 | [modes.md](./modes.md) | 3つの動作モード（PRODUCTION / MOCK / TEST）の詳細 |
+| [i18n.md](./i18n.md) | 日本語・英語の切替と独自ロケールの追加方法 |
+| [README.en.md](./README.en.md) | English documentation index |

@@ -2,6 +2,9 @@ from __future__ import annotations
 import dataclasses
 from typing import Any
 
+from . import _config
+from ._i18n import translate
+
 
 def returns_match(actual: Any, expected: Any) -> tuple[bool, str]:
     """
@@ -23,8 +26,8 @@ def returns_match(actual: Any, expected: Any) -> tuple[bool, str]:
         try:
             matched = bool(expected(actual))
         except Exception as e:
-            return False, f"バリデータ例外: {e}"
-        reason = "" if matched else f"バリデータが False を返しました\n  actual={actual!r}"
+            return False, translate(_config._LANGUAGE, "validator_error", error=e)
+        reason = "" if matched else translate(_config._LANGUAGE, "validator_false", actual=actual)
         return matched, reason
 
     # ── パターン 1: クラス型が渡された → isinstance チェックのみ ────
@@ -33,7 +36,7 @@ def returns_match(actual: Any, expected: Any) -> tuple[bool, str]:
         reason = (
             ""
             if matched
-            else f"型不一致: actual={type(actual).__name__}, expected={expected.__name__}"
+            else translate(_config._LANGUAGE, "type_mismatch", actual=type(actual).__name__, expected=expected.__name__)
         )
         return matched, reason
 
@@ -46,7 +49,7 @@ def returns_match(actual: Any, expected: Any) -> tuple[bool, str]:
             else actual
         )
         matched = act_dict == exp_dict
-        reason = "" if matched else f"フィールド不一致:\n  expected={exp_dict}\n  actual  ={act_dict}"
+        reason = "" if matched else translate(_config._LANGUAGE, "fields_mismatch", expected=exp_dict, actual=act_dict)
         return matched, reason
 
     # ── パターン 3: dataclass インスタンス ───────────────────────────
@@ -54,12 +57,12 @@ def returns_match(actual: Any, expected: Any) -> tuple[bool, str]:
         exp_dict = dataclasses.asdict(expected)
         act_dict = dataclasses.asdict(actual) if _is_dataclass_instance(actual) else actual
         matched = act_dict == exp_dict
-        reason = "" if matched else f"フィールド不一致:\n  expected={exp_dict}\n  actual  ={act_dict}"
+        reason = "" if matched else translate(_config._LANGUAGE, "fields_mismatch", expected=exp_dict, actual=act_dict)
         return matched, reason
 
     # ── パターン 4: プレーンな値（デフォルト） ───────────────────────
     matched = actual == expected
-    reason = "" if matched else f"値不一致:\n  expected={expected!r}\n  actual  ={actual!r}"
+    reason = "" if matched else translate(_config._LANGUAGE, "value_mismatch", expected=expected, actual=actual)
     return matched, reason
 
 
@@ -78,15 +81,15 @@ def can_use_as_mock(returns: Any) -> bool:
 def format_returns(returns: Any) -> str:
     """docstring 用に returns を読みやすい文字列にフォーマットします。"""
     if isinstance(returns, type):
-        return f"{returns.__name__} (型チェックのみ)"
+        return f"{returns.__name__} ({translate(_config._LANGUAGE, 'type_check_only')})"
     if callable(returns):
         import inspect
         try:
             src = inspect.getsource(returns).strip()
             src = " ".join(src.split())
-            return f"validator: {src}"
+            return f"{translate(_config._LANGUAGE, 'validator')}: {src}"
         except Exception:
-            return "validator: <callable>"
+            return f"{translate(_config._LANGUAGE, 'validator')}: <callable>"
     if _is_pydantic(returns):
         d = returns.model_dump() if hasattr(returns, "model_dump") else returns.dict()
         return f"{type(returns).__name__}({d})"

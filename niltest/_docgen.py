@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from ._case import _Case
 from ._compare import format_returns
+from . import _config
+from ._i18n import translate
 
 
 def build_docstring(original_doc: str, title: str, cases: list[_Case]) -> str:
@@ -15,16 +17,16 @@ def build_docstring(original_doc: str, title: str, cases: list[_Case]) -> str:
         lines.append(original_doc.strip())
         lines.append("")
 
-    lines.append(f"Scenario: {title}")
+    lines.append(f"{translate(_config._LANGUAGE, 'scenario')}: {title}")
     lines.append("=" * max(len(title) + 10, 40))
 
     for c in cases:
         lines.append(f"  [{c.name}]")
         if c.desc:
-            lines.append(f"    説明    : {c.desc}")
+            lines.append(f"    {translate(_config._LANGUAGE, 'description'):<10}: {c.desc}")
         for k, v in c.given.items():
             lines.append(f"    {k:<10}: {v!r}")
-        lines.append(f"    -> returns: {format_returns(c.returns)}")
+        lines.append(f"    -> {translate(_config._LANGUAGE, 'returns')}: {format_returns(c.returns)}")
         lines.append("")
 
     return "\n".join(lines)

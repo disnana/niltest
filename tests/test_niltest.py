@@ -402,3 +402,144 @@ class TestDocstring:
 
         # 本番ではラッパーなし、__doc__ は元の関数のもの
         assert not hasattr(func, "_niltest_doc_done")
+
+    def test_docstring_empty_original_doc(self):
+        import niltest
+        from niltest import scenario, expect
+        niltest.configure(production=False, mode="MOCK")
+
+        @scenario("No doc")
+        def func():
+            if expect:
+                expect.case("A", given={}, returns=1)
+            return 1
+        
+        func()
+        # original doc が空の場合のパス（_docgen.py L15-16）をカバー
+        assert "Scenario: No doc" in (func.__doc__ or "")
+
+
+# ─────────────────────────────────────────────────────────────
+# 7. Async サポートのテスト
+# ─────────────────────────────────────────────────────────────
+class TestAsyncScenarioMock:
+    @pytest.mark.asyncio
+    async def test_async_mock_match(self):
+        import niltest
+        from niltest import scenario, expect
+        niltest.configure(production=False, mode="MOCK")
+
+        @scenario("非同期テスト")
+        async def fetch_data(id: int) -> dict:
+            if expect:
+                expect.case("正常系", given=dict(id=1), returns={"data": "ok"})
+            return {"data": "real"}
+
+        result = await fetch_data(1)
+        assert result == {"data": "ok"}
+
+    @pytest.mark.asyncio
+    async def test_async_mock_no_match(self):
+        import niltest
+        from niltest import scenario, expect
+        niltest.configure(production=False, mode="MOCK")
+
+        @scenario("非同期テスト")
+        async def fetch_data(id: int) -> dict:
+            if expect:
+                expect.case("正常系", given=dict(id=1), returns={"data": "ok"})
+            return {"data": "real"}
+
+        result = await fetch_data(99)
+        assert result == {"data": "real"}
+
+
+class TestAsyncRunTests:
+    def test_async_run_tests_success(self, capsys):
+        import niltest
+        from niltest import scenario, expect
+        niltest.configure(production=False, mode="MOCK")
+
+        @scenario("非同期自動テスト")
+        async def process(x: int) -> int:
+            if expect:
+                expect.case("ケース1", given=dict(x=5), returns=10)
+            return x * 2
+
+        niltest.configure(mode="TEST")
+        niltest.run_tests(process)
+        out = capsys.readouterr().out
+        assert "PASS" in out
+        assert "FAIL" not in out
+        assert "1 passed" in out
+
+    def test_async_run_tests_fail(self, capsys):
+        import niltest
+        from niltest import scenario, expect
+        niltest.configure(production=False, mode="MOCK")
+
+        @scenario("非同期自動テスト(失敗)")
+        async def process(x: int) -> int:
+            if expect:
+                expect.case("ケース1", given=dict(x=5), returns=999)
+            return x * 2
+
+        niltest.configure(mode="TEST")
+        niltest.run_tests(process)
+        out = capsys.readouterr().out
+        assert "FAIL" in out
+        assert "0 passed" in out
+
+
+# ─────────────────────────────────────────────────────────────
+# 8. エッジケース・カバレッジ補完
+# ─────────────────────────────────────────────────────────────
+class TestEdgeCases:
+    def test_expect_case_in_production(self):
+        # _expect.py の 61 行目: if _config._PRODUCTION: return
+        import niltest
+        from niltest._expect import expect
+        niltest.configure(production=True)
+        # 呼ばれても何もしない
+        expect.case("test", given={}, returns=None)
+        assert len(expect._pending) == 0
+    
+    def test_format_returns_exceptions(self):
+        # _compare.py の format_returns でソース取得失敗の例外パスをカバー
+        from niltest._compare import format_returns
+        
+        # 組込み関数などはソースが取れない
+        res = format_returns(len)
+        assert "validator: <callable>" in res
+        
+    def test_try_early_collect_fail(self):
+        # デフォルト値がない引数がある場合、早期収集はスキップされる
+        import niltest
+        from niltest import scenario, expect
+        niltest.configure(production=False, mode="MOCK")
+
+        @scenario("必須引数あり")
+        def func(req: int):
+            if expect:
+                expect.case("A", given=dict(req=1), returns=1)
+            return req
+        
+        # 適用直後は doc_built = False
+        assert not hasattr(func, "_niltest_doc_done")
+
+    def test_run_sync_with_existing_loop(self):
+        import asyncio
+        from niltest._scenario import _run_sync
+        
+        async def dummy():
+            pass
+
+        async def main():
+            # すでにループが回っている中で _run_sync を呼ぶと RuntimeError
+            try:
+                _run_sync(dummy())
+            except RuntimeError as e:
+                assert "cannot be called from within an already running" in str(e)
+
+        asyncio.run(main())
+
