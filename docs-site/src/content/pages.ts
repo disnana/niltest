@@ -20,9 +20,9 @@ export type Page = {
 };
 
 const basic = `import niltest
-from niltest import expect, scenario
+from niltest import Mode, expect, scenario
 
-niltest.configure(mode="test")  # @scenarioより前
+niltest.configure(mode=Mode.TEST)  # @scenarioより前
 
 @scenario("配送料")
 def shipping_fee(subtotal: int, premium: bool = False) -> int:
@@ -109,7 +109,7 @@ pip3 install niltest` },
     title: "mock.title",
     lead: "mock.lead",
     sections: [
-      { id: "exact", title: "mock.exact.title", paragraphs: ["mock.exact.p1"], code: "import niltest\n\nniltest.configure(mode=\"mock\")  # @scenarioより前\nfrom your_package.shipping import shipping_fee\n\nresult = shipping_fee(1_000, premium=True)\nassert result == 0" },
+      { id: "exact", title: "mock.exact.title", paragraphs: ["mock.exact.p1"], code: "import niltest\nfrom niltest import Mode\n\nniltest.configure(mode=Mode.MOCK)  # @scenarioより前\nfrom your_package.shipping import shipping_fee\n\nresult = shipping_fee(1_000, premium=True)\nassert result == 0" },
       { id: "fallback", title: "mock.fallback.title", paragraphs: ["mock.fallback.p1"] },
       { id: "boundaries", title: "mock.boundaries.title", bullets: ["mock.boundaries.b1", "mock.boundaries.b2", "mock.boundaries.b3"] },
     ],
@@ -122,7 +122,7 @@ pip3 install niltest` },
     title: "test.title",
     lead: "test.lead",
     sections: [
-      { id: "python", title: "test.python.title", code: "import niltest\n\nniltest.configure(mode=\"test\")  # @scenarioより前\nfrom your_package.shipping import shipping_fee\n\nresult = niltest.run_tests(shipping_fee)\nassert result.success\nprint(result.to_dict())" },
+      { id: "python", title: "test.python.title", paragraphs: ["test.python.p1"], code: "import niltest\nfrom niltest import Mode\n\nniltest.configure(mode=Mode.TEST)  # @scenarioより前\nfrom your_package.shipping import shipping_fee\n\nresult = niltest.run_tests(shipping_fee)\nassert result.success\nprint(result.to_dict())" },
       { id: "pytest", title: "test.pytest.title", paragraphs: ["test.pytest.p1", "test.pytest.p2"], code: `pytest --niltest --niltest-module=your_package.specs
 pytest --niltest --junitxml=report.xml --cov=your_package
 
@@ -130,7 +130,7 @@ pytest --niltest --junitxml=report.xml --cov=your_package
 [tool.pytest.ini_options]
 niltest_modules = ["your_package.specs"]` },
       { id: "cli", title: "test.cli.title", paragraphs: ["test.cli.p1"], code: "niltest run your_package.specs\nniltest run your_package.specs --json" },
-      { id: "inspect", title: "test.inspect.title", paragraphs: ["test.inspect.p1", "test.inspect.p2"], code: "niltest inspect your_package.services --format text\nniltest inspect your_package.services --format json\nniltest inspect your_package.services --format markdown" },
+      { id: "inspect", title: "test.inspect.title", paragraphs: ["test.inspect.p1", "test.inspect.p2", "test.inspect.p3"], code: "niltest inspect your_package.services                 # terminal\nniltest inspect your_package.services --format json   # CI / tools\nniltest inspect your_package.services --format markdown # review docs" },
       { id: "exit", title: "test.exit.title", bullets: ["test.exit.b1", "test.exit.b2", "test.exit.b3"] },
     ],
   },
@@ -183,7 +183,7 @@ def process(payload: Payload) -> int:
     title: "prod.title",
     lead: "prod.lead",
     sections: [
-      { id: "enable", title: "prod.enable.title", paragraphs: ["prod.enable.p1"], code: "# macOS / Linux\nNILTEST_MODE=test python app.py\n\n# Windows PowerShell\n$env:NILTEST_MODE = \"test\"; python app.py\n\n# mockを使う場合は test を mock に変更" },
+      { id: "enable", title: "prod.enable.title", paragraphs: ["prod.enable.p1"], code: "# Python: importする前に設定\nfrom niltest import Mode, configure\nconfigure(mode=Mode.TEST)\n\n# macOS / Linux\nNILTEST_MODE=test python app.py\n\n# Windows PowerShell\n$env:NILTEST_MODE = \"test\"; python app.py" },
       { id: "declared", title: "prod.declared.title", paragraphs: ["prod.declared.p1", "prod.declared.p2"], code: `from niltest import case, docs, scenario
 
 @scenario("配送料")
@@ -228,7 +228,7 @@ def shipping_fee(premium: bool) -> int:
     title: "api.title",
     lead: "api.lead",
     sections: [
-      { id: "configure", title: "api.configure.title", code: "configure(mode=None, language=None)", paragraphs: ["api.configure.p1"] },
+      { id: "configure", title: "api.configure.title", code: "configure(mode: Mode | str | None = None, language=None)", paragraphs: ["api.configure.p1"] },
       { id: "scenario", title: "api.scenario.title", code: "@scenario(title)", paragraphs: ["api.scenario.p1"] },
       { id: "case", title: "api.case.title", code: "case(name, *, given, returns=... | raises=..., match=None, desc=\"\")", paragraphs: ["api.case.p1"] },
       { id: "run", title: "api.run.title", code: "run_tests(*functions) -> RunResult", paragraphs: ["api.run.p1"] },

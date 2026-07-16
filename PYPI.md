@@ -30,9 +30,9 @@ python3 -m pip install niltest
 
 ```python
 import niltest
-from niltest import expect, scenario
+from niltest import Mode, expect, scenario
 
-niltest.configure(mode="mock")  # Configure before @scenario is evaluated.
+niltest.configure(mode=Mode.MOCK)  # Configure before @scenario is evaluated.
 
 @scenario("Shipping fee")
 def shipping_fee(subtotal: int, premium: bool = False) -> int:
@@ -53,7 +53,7 @@ def shipping_fee(subtotal: int, premium: bool = False) -> int:
 
 assert shipping_fee(1_000, premium=True) == 0
 
-niltest.configure(mode="test")
+niltest.configure(mode=Mode.TEST)
 result = niltest.run_tests(shipping_fee)
 assert result.success
 ```
@@ -66,6 +66,17 @@ niltest run your_package.specs --json
 ```
 
 The CLI exits with `0` when all cases pass, `1` for specification failures, and `2` for usage or import errors. JSON output and the structured `RunResult` API make niltest easy to compose with CI and other developer tools.
+
+## Selecting a mode from Python
+
+Use the `Mode` enum for completion and type checking. String values remain available when brevity or compatibility matters.
+
+```python
+from niltest import Mode, configure
+
+configure(mode=Mode.TEST)   # Recommended
+configure(mode="test")      # Also supported
+```
 
 ## Expectations
 
@@ -96,8 +107,18 @@ def fetch_user(user_id: int) -> dict[str, object]:
     return {"id": user_id, "name": "Alice"}
 ```
 
-Use `niltest inspect your_package.services` as a compact architecture map, or add
-`--json` to feed the same information to other tools.
+Use `niltest inspect your_package.services` as a compact architecture map. Replace
+`your_package.services` with an importable module path such as
+`your_package/services.py`. Inspect imports the module and lists registered
+scenarios; it does not execute their cases.
+
+```bash
+niltest inspect your_package.services                 # terminal-friendly text
+niltest inspect your_package.services --format json   # CI and other tools
+niltest inspect your_package.services --format markdown # reviews and design docs
+```
+
+`--json` remains a compatibility alias for `--format json`.
 
 ## Pytest integration and exception specifications
 

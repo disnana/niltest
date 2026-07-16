@@ -1,9 +1,19 @@
 import locale
 import os
+from enum import Enum
 
 from ._i18n import is_registered_locale, normalize_locale
 
 _VALID_MODES = frozenset({"production", "test", "mock"})
+
+
+class Mode(str, Enum):
+    """Runtime modes accepted by :func:`configure`."""
+
+    PRODUCTION = "production"
+    TEST = "test"
+    MOCK = "mock"
+
 
 # Safe by default: importing an application must never make declared values act
 # as mocks unless the application explicitly opts in.
@@ -36,18 +46,19 @@ def is_production() -> bool:
     return _MODE == "production"
 
 
-def configure(mode: str | None = None, language: str | None = None) -> None:
+def configure(mode: Mode | str | None = None, language: str | None = None) -> None:
     """Configure niltest before importing modules decorated with ``@scenario``.
 
     Args:
-        mode: ``"production"`` (the safe default), ``"test"``, or ``"mock"``.
+        mode: Prefer :class:`Mode` (for example, ``Mode.TEST``). The strings
+            ``"production"``, ``"test"``, and ``"mock"`` remain supported.
         language: Output language. Defaults to the operating-system language,
             with English as the fallback. ``NILTEST_LANGUAGE`` can set it at
             process start.
     """
     global _MODE, _LANGUAGE
     if mode is not None:
-        normalized_mode = mode.lower()
+        normalized_mode = mode.value if isinstance(mode, Mode) else mode.lower()
         if normalized_mode not in _VALID_MODES:
             allowed = ", ".join(sorted(_VALID_MODES))
             raise ValueError(f"mode must be one of: {allowed}.")

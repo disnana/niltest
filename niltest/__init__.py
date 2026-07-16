@@ -34,7 +34,7 @@ niltest
 
 from typing import Protocol, cast
 
-from ._config import configure
+from ._config import Mode, configure
 from ._declared import case, docs
 from ._expect import expect
 from ._i18n import register_locale
@@ -66,6 +66,7 @@ def run_tests(*funcs: object) -> RunResult:
 
 __all__ = [
     "CaseResult",
+    "Mode",
     "RunResult",
     "ScenarioResult",
     "TypeExpectation",
@@ -78,4 +79,4 @@ __all__ = [
     "run_tests",
     "scenario",
 ]
-__version__ = "1.2.0"
+__version__ = "1.2.1"

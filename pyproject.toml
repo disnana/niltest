@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "niltest"
-version = "1.2.0"
+version = "1.2.1"
 description = "Executable specifications, mocks, and lightweight tests next to your Python code"
 readme = {file = "PYPI.md", content-type = "text/markdown"}
 license = "MIT"

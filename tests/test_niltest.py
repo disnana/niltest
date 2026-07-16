@@ -76,6 +76,18 @@ class TestConfigure:
 
         assert cfg._MODE == "test"
 
+    def test_configure_accepts_mode_enum(self):
+        import niltest
+        import niltest._config as cfg
+
+        niltest.configure(mode=niltest.Mode.TEST)
+        assert cfg._MODE == "test"
+
+    def test_mode_is_a_string_enum(self):
+        import niltest
+
+        assert niltest.Mode.MOCK == "mock"
+
     def test_configure_partial_update(self):
         import niltest
         import niltest._config as cfg
