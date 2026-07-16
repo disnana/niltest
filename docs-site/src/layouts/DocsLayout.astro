@@ -46,7 +46,7 @@ const searchItems = pages.map((page) => ({
   <body>
     <a class="skip-link" href="#content">{t(locale, "ui.skip")}</a>
     <header class="topbar">
-      <a class="brand" href={docUrl(locale)} aria-label="niltest home">
+      <a class="brand" href="/" aria-label="niltest home">
         <span class="brand-mark">nil</span><span>test</span>
         <span class="brand-docs">{t(locale, "ui.docs")}</span>
       </a>
@@ -60,7 +60,6 @@ const searchItems = pages.map((page) => ({
           <summary aria-label={t(locale, "ui.language")} title={t(locale, "ui.language")}>
             <span aria-hidden="true">◎</span>
             <strong>{locale.toUpperCase()}</strong>
-            <span class="chevron" aria-hidden="true">⌄</span>
           </summary>
           <div class="language-popover">
             <p>{t(locale, "ui.language")}</p>
@@ -73,7 +72,7 @@ const searchItems = pages.map((page) => ({
           </div>
         </details>
         <button class="icon-button" type="button" data-theme-toggle aria-label={t(locale, "ui.theme")} title={t(locale, "ui.theme")}>◐</button>
-        <a class="github-link" href="https://github.com/disnana/niltest">{t(locale, "ui.github")} ↗</a>
+        <a class="github-link" href="https://github.com/disnana/niltest">{t(locale, "ui.github")}</a>
       </div>
     </header>
 
@@ -96,6 +95,7 @@ const searchItems = pages.map((page) => ({
     <div class="docs-shell">
       <aside class="sidebar">
         <nav aria-label="Documentation">
+          <a class="back-home" href="/">← {locale === "ja" ? "プロダクトホーム" : "Product home"}</a>
           {groups.map((group) => (
             <section class="nav-group">
               <p>{t(locale, group)}</p>
@@ -183,7 +183,8 @@ const searchItems = pages.map((page) => ({
           await navigator.clipboard.writeText(code);
           const original = button.textContent;
           button.textContent = button.dataset.copied;
-          setTimeout(() => { button.textContent = original; }, 1400);
+          button.classList.add("copied");
+          setTimeout(() => { button.textContent = original; button.classList.remove("copied"); }, 2200);
         });
       });
     </script>

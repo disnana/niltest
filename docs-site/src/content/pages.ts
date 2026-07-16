@@ -69,7 +69,17 @@ export const pages: Page[] = [
     title: "start.title",
     lead: "start.lead",
     sections: [
-      { id: "install", title: "start.install.title", paragraphs: ["start.install.p1"], code: "python -m pip install niltest" },
+      { id: "install", title: "start.install.title", paragraphs: ["start.install.p1", "start.install.p2", "start.install.p3"], code: `# Windows
+python -m pip install niltest
+
+# Ubuntu / macOS
+python3 -m pip install niltest
+
+# 仮想環境を有効化済みなら（全OS）
+pip install niltest
+
+# 環境によって利用できる別名
+pip3 install niltest` },
       { id: "first", title: "start.first.title", paragraphs: ["start.first.p1"], code: basic },
       { id: "run", title: "start.run.title", paragraphs: ["start.run.p1"], code: "niltest run your_package.specs --language ja" },
       { id: "next", title: "start.next.title", bullets: ["start.next.b1", "start.next.b2", "start.next.b3"] },

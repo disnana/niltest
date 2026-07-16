@@ -50,13 +50,15 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-インストールしてデモを実行します。
+インストールしてデモを実行します。仮想環境を有効化済みなら、通常は次のコマンドを全OSで利用できます。
 
 ```bash
-python -m pip install -e ".[dev]"
+pip install -e ".[dev]"
 niltest run examples.demo --language ja
 python -m pytest
 ```
+
+Pythonを明示する場合、Windowsでは `python -m pip install -e ".[dev]"`、Ubuntu・macOSでは `python3 -m pip install -e ".[dev]"` を使用してください。環境によっては `pip3 install` も利用できます。
 
 ### 何が新しいか
 

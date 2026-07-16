@@ -16,7 +16,7 @@ const highlighted = await codeToHtml(code, {
 <div class="code-block">
   <div class="code-head">
     <span>{lang === "python" ? "python" : "shell"}</span>
-    <button type="button" data-copy data-copied={t(locale, "ui.copied")}>{t(locale, "ui.copy")}</button>
+    <button type="button" data-copy data-copied={`${t(locale, "ui.copied")} ✓`} aria-live="polite">{t(locale, "ui.copy")}</button>
   </div>
   <div class="highlighted-code" set:html={highlighted} />
 </div>

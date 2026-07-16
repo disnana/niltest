@@ -15,7 +15,14 @@ It has no runtime dependencies and supports Python 3.10+ on Windows, macOS, and 
 ## Install
 
 ```bash
+# Active virtual environment (Windows, macOS, or Linux)
+pip install niltest
+
+# Windows
 python -m pip install niltest
+
+# Ubuntu / macOS
+python3 -m pip install niltest
 ```
 
 ## A complete example

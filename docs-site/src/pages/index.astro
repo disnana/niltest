@@ -5,56 +5,71 @@ import CodeBlock from "@/components/CodeBlock.astro";
 const example = `from niltest import case, docs, scenario
 
 @scenario("配送料")
-@docs(
-    case("プレミアム会員", given={"premium": True}, returns=0),
-)
+@docs(case("プレミアム会員", given={"premium": True}, returns=0))
 def shipping_fee(premium: bool) -> int:
     return 0 if premium else 500`;
 ---
 
 <!doctype html>
-<html lang="ja">
+<html lang="ja" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="仕様・テスト・モック・ドキュメントをひとつにする、ゼロ依存のPython開発者ツール。" />
+    <meta name="theme-color" content="#f8f8fb" />
     <link rel="canonical" href="https://niltest.disnana.com/" />
     <title>niltest — 実装のそばに、動く仕様を。</title>
+    <script is:inline>
+      (() => { const saved = localStorage.getItem("niltest-theme"); const dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; document.documentElement.dataset.theme = dark ? "dark" : "light"; })();
+    </script>
   </head>
-  <body class="landing-body">
-    <header class="topbar landing-nav">
-      <a class="brand" href="/"><span class="brand-mark">nil</span>test</a>
-      <nav aria-label="メインナビゲーション">
-        <a href="/docs/">ドキュメント</a><a href="/docs/en/">JA / EN</a><a class="github-link" href="https://github.com/disnana/niltest">GitHub</a>
-      </nav>
+  <body>
+    <a class="skip-link" href="#content">本文へ移動</a>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="niltest home"><span class="brand-mark">nil</span><span>test</span><span class="brand-docs">Developer tool</span></a>
+      <div class="top-actions">
+        <a class="home-nav-link" href="/docs/">ドキュメント</a>
+        <details class="language-menu">
+          <summary aria-label="言語"><span aria-hidden="true">◎</span><strong>JA</strong></summary>
+          <div class="language-popover"><p>言語</p><a href="/" aria-current="page"><span><strong>日本語</strong><small>JA</small></span><span class="language-check">✓</span></a><a href="/en/"><span><strong>English</strong><small>EN</small></span></a></div>
+        </details>
+        <button class="icon-button" type="button" data-theme-toggle aria-label="テーマを切り替え">◐</button>
+        <a class="github-link" href="https://github.com/disnana/niltest">GitHub</a>
+      </div>
     </header>
-    <main class="landing-main">
-      <section class="landing-hero">
-        <div>
-          <p class="eyebrow">PYTHON · ZERO DEPENDENCIES · MIT</p>
-          <h1>実装のそばに、<br /><span>動く仕様</span>を。</h1>
-          <p>仕様、テスト、モック、ドキュメントを一度だけ書く。小さく始めて、そのままチームの共通言語へ育てられます。</p>
-          <div class="hero-actions"><a class="primary-button" href="/docs/getting-started/">5分で始める →</a><button class="install-command" data-copy-install>pip install niltest <span>コピー</span></button></div>
-          <div class="landing-stats"><span><strong>0</strong> runtime deps</span><span><strong>2</strong> API styles</span><span><strong>3</strong> modes</span></div>
-        </div>
-        <CodeBlock code={example} locale="ja" />
-      </section>
-      <section class="landing-features" aria-label="主な機能">
-        <article><span>01</span><h2>仕様がコードから離れない</h2><p>入力と期待値を関数のそばに宣言。実装が変われば、古い仕様をすぐ発見できます。</p></article>
-        <article><span>02</span><h2>そのままテストとモックへ</h2><p>同じケースを自動テストにも開発用モックにも再利用。二重管理を減らします。</p></article>
-        <article><span>03</span><h2>本番では呼び出しコストゼロ</h2><p>宣言型APIなら本番で元関数をそのまま返し、実行時のラッパーや条件分岐を残しません。</p></article>
-      </section>
+
+    <main id="content" class="product-home" tabindex="-1">
+      <article class="doc-article">
+        <header class="product-hero">
+          <div class="product-message">
+            <p class="eyebrow">PYTHON · ZERO DEPENDENCIES · MIT</p>
+            <h1>実装のそばに、<br /><span class="accent-text">動く仕様</span>を。</h1>
+            <p class="page-lead">仕様、テスト、モック、ドキュメントを一度だけ書く。小さく始めて、そのままチームの共通言語へ育てられます。</p>
+            <div class="hero-actions"><a class="primary-button" href="/docs/getting-started/">5分で始める →</a><button class="install-command" data-copy-install>pip install niltest <span aria-live="polite">コピー</span></button></div>
+            <div class="hero-proof"><span><strong>0</strong> runtime deps</span><span><strong>2</strong> API styles</span><span><strong>3</strong> modes</span></div>
+          </div>
+          <div class="product-preview"><div class="preview-label"><span>shipping.py</span><span>Executable specification</span></div><CodeBlock code={example} locale="ja" /></div>
+        </header>
+
+        <section class="home-section" aria-labelledby="one-source"><p class="eyebrow">ONE SOURCE OF TRUTH</p><h2 id="one-source">一度書いたケースを、開発全体で使う。</h2><p class="section-lead">説明のためのサンプルと、テストの入力と、モックの戻り値を別々に保守する必要はありません。</p>
+          <div class="capability-grid"><article class="capability-main"><span>Specification</span><h3>コードのすぐ隣に、レビューできる仕様</h3><p>関数の入力と期待値が具体例として残るため、実装だけを読んで意図を推測する時間を減らせます。</p><a href="/docs/concepts/">基本概念を読む</a></article><article><span>Mock</span><h3>外部サービスを待たずに進める</h3><p>同じケースを固定モックとして利用できます。</p><a href="/docs/mocking/">モックを見る</a></article><article><span>Test</span><h3>仕様どおりか、その場で確認</h3><p>宣言済みケースを実装チェックへ再利用します。</p><a href="/docs/testing/">テストを見る</a></article><article class="capability-production"><span>Production</span><h3>開発支援を、本番の負担にしない</h3><p>宣言型APIでは本番時に元関数をそのまま返します。</p><a href="/docs/production/">本番モードを見る</a></article></div>
+        </section>
+        <section class="home-cta"><div><p class="eyebrow">START SMALL</p><h2>まずひとつの関数から。</h2><p>設定ファイルも実行時依存も不要です。既存プロジェクトへ段階的に追加できます。</p></div><div><a class="primary-button" href="/docs/getting-started/">インストール方法を見る</a><a class="secondary-link" href="https://github.com/disnana/niltest">GitHubでコードを見る</a></div></section>
+      </article>
     </main>
     <script>
-      document.querySelector("[data-copy-install]")?.addEventListener("click", async (event) => {
-        await navigator.clipboard.writeText("pip install niltest");
-        const button = event.currentTarget;
-        if (button instanceof HTMLButtonElement) {
-          const label = button.querySelector("span");
-          if (label) label.textContent = "コピーしました ✓";
-          button.classList.add("copied");
-          setTimeout(() => { button.classList.remove("copied"); if (label) label.textContent = "コピー"; }, 1800);
-        }
+      document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => { const root = document.documentElement; const dark = root.dataset.theme !== "dark"; root.dataset.theme = dark ? "dark" : "light"; localStorage.setItem("niltest-theme", dark ? "dark" : "light"); });
+      document.querySelector("[data-copy-install]")?.addEventListener("click", async (event) => { await navigator.clipboard.writeText("pip install niltest"); const button = event.currentTarget; if (!(button instanceof HTMLButtonElement)) return; const label = button.querySelector("span"); if (label) label.textContent = "コピーしました ✓"; button.classList.add("copied"); setTimeout(() => { button.classList.remove("copied"); if (label) label.textContent = "コピー"; }, 2200); });
+      document.querySelectorAll("[data-copy]").forEach((element) => {
+        if (!(element instanceof HTMLButtonElement)) return;
+        element.addEventListener("click", async () => {
+          const code = element.closest(".code-block")?.querySelector("code")?.textContent ?? "";
+          await navigator.clipboard.writeText(code);
+          const original = element.textContent;
+          element.textContent = element.dataset.copied ?? "コピーしました ✓";
+          element.classList.add("copied");
+          setTimeout(() => { element.textContent = original; element.classList.remove("copied"); }, 2200);
+        });
       });
     </script>
   </body>

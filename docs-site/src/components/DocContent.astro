@@ -5,6 +5,7 @@ import { t } from "@/locales";
 import { docUrl } from "@/lib/urls";
 import { pages } from "@/content/pages";
 import CodeBlock from "@/components/CodeBlock.astro";
+import InstallCommand from "@/components/InstallCommand.astro";
 
 type Props = { page: Page; locale: string };
 const { page, locale } = Astro.props;
@@ -24,7 +25,7 @@ const inlineCode = (value: string) => value.replace(/`([^`]+)`/g, "<code>$1</cod
       {isHome && (
         <div class="hero-actions">
           <a class="primary-button" href={docUrl(locale, "getting-started")}>{t(locale, "ui.start")} →</a>
-          <button class="install-command code-inline" type="button" data-copy-install>pip install niltest <span>コピー</span></button>
+          <button class="install-command code-inline" type="button" data-copy-install>pip install niltest <span aria-live="polite">コピー</span></button>
         </div>
       )}
       {isHome && (
@@ -43,7 +44,9 @@ const inlineCode = (value: string) => value.replace(/`([^`]+)`/g, "<code>$1</cod
             <h2><a href={`#${section.id}`}>{t(locale, section.title)}</a></h2>
             {section.paragraphs?.map((key) => <p set:html={inlineCode(t(locale, key))} />)}
             {section.bullets && <ul>{section.bullets.map((key) => <li set:html={inlineCode(t(locale, key))} />)}</ul>}
-            {section.code && <CodeBlock code={section.code} locale={locale} />}
+            {page.slug === "getting-started" && section.id === "install"
+              ? <InstallCommand locale={locale} />
+              : section.code && <CodeBlock code={section.code} locale={locale} />}
             {section.note && <aside class="note"><span aria-hidden="true">i</span><p set:html={inlineCode(t(locale, section.note))} /></aside>}
           </section>
         ))}
@@ -51,7 +54,7 @@ const inlineCode = (value: string) => value.replace(/`([^`]+)`/g, "<code>$1</cod
       <aside class="toc">
         <p>{t(locale, "ui.onThisPage")}</p>
         {page.sections.map((section) => <a href={`#${section.id}`}>{t(locale, section.title)}</a>)}
-        <a class="edit-link" href={`https://github.com/disnana/niltest/tree/main/docs-site/src/locales/catalogs/${locale}.ts`}>{t(locale, "ui.edit")} ↗</a>
+        <a class="edit-link" href={`https://github.com/disnana/niltest/tree/main/docs-site/src/locales/catalogs/${locale}.ts`}>{t(locale, "ui.edit")}</a>
       </aside>
     </div>
 
@@ -73,6 +76,6 @@ const inlineCode = (value: string) => value.replace(/`([^`]+)`/g, "<code>$1</cod
     setTimeout(() => {
       button.classList.remove("copied");
       if (label) label.textContent = "コピー";
-    }, 1800);
+    }, 2200);
   });
 </script>
