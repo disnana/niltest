@@ -56,7 +56,7 @@ const inlineCode = (value: string) => value.replace(/`([^`]+)`/g, "<code>$1</cod
       <aside class="toc">
         <p>{t(locale, "ui.onThisPage")}</p>
         {page.sections.map((section) => <a href={`#${section.id}`}>{t(locale, section.title)}</a>)}
-        <a class="edit-link" href={`https://github.com/disnana/niltest/tree/main/docs-site/src/locales/catalogs/${locale}.ts`}>{t(locale, "ui.edit")}</a>
+        <a class="edit-link" href={`https://github.com/disnana/niltest/tree/main/docs-site/src/locales/catalogs/${locale}.ts`} target="_blank" rel="noopener noreferrer" aria-label={locale === "ja" ? "GitHubで編集（新しいタブで開く）" : "Edit on GitHub (opens in a new tab)"}>{t(locale, "ui.edit")}</a>
       </aside>
     </div>
 
