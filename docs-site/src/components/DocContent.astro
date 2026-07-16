@@ -18,38 +18,40 @@ const inlineCode = (value: string) => value.replace(/`([^`]+)`/g, "<code>$1</cod
 
 <DocsLayout locale={locale} slug={page.slug} title={t(locale, page.title)} description={t(locale, page.lead)}>
   <article class:list={["doc-article", isHome && "home-article"]}>
-    <header class="page-header">
-      <p class="eyebrow">{t(locale, page.eyebrow)}</p>
-      <h1>{t(locale, page.title)}</h1>
-      <p class="page-lead">{t(locale, page.lead)}</p>
-      {isHome && (
-        <div class="hero-actions">
-          <a class="primary-button" href={docUrl(locale, "getting-started")}>{t(locale, "ui.start")}</a>
-          <div class="quick-install"><code tabindex="0">pip install niltest</code><button type="button" data-copy-install aria-live="polite">{locale === "ja" ? "コピー" : "Copy"}</button></div>
-        </div>
-      )}
-      {isHome && (
-        <div class="hero-proof" aria-label="Project properties">
-          <span><strong>0</strong> runtime deps</span>
-          <span><strong>3</strong> modes</span>
-          <span><strong>2+</strong> languages</span>
-        </div>
-      )}
-    </header>
+    <div class="doc-layout">
+      <div class="doc-main">
+        <header class="page-header">
+          <p class="eyebrow">{t(locale, page.eyebrow)}</p>
+          <h1>{t(locale, page.title)}</h1>
+          <p class="page-lead">{t(locale, page.lead)}</p>
+          {isHome && (
+            <div class="hero-actions">
+              <a class="primary-button" href={docUrl(locale, "getting-started")}>{t(locale, "ui.start")}</a>
+              <div class="quick-install"><code tabindex="0">pip install niltest</code><button type="button" data-copy-install aria-live="polite">{locale === "ja" ? "コピー" : "Copy"}</button></div>
+            </div>
+          )}
+          {isHome && (
+            <div class="hero-proof" aria-label="Project properties">
+              <span><strong>0</strong> runtime deps</span>
+              <span><strong>3</strong> modes</span>
+              <span><strong>2+</strong> languages</span>
+            </div>
+          )}
+        </header>
 
-    <div class="article-grid">
-      <div class="article-body">
-        {page.sections.map((section) => (
-          <section id={section.id}>
-            <h2><a href={`#${section.id}`}>{t(locale, section.title)}</a></h2>
-            {section.paragraphs?.map((key) => <p set:html={inlineCode(t(locale, key))} />)}
-            {section.bullets && <ul>{section.bullets.map((key) => <li set:html={inlineCode(t(locale, key))} />)}</ul>}
-            {page.slug === "getting-started" && section.id === "install"
-              ? <InstallCommand locale={locale} />
-              : section.code && <CodeBlock code={section.code} locale={locale} />}
-            {section.note && <aside class="note"><span aria-hidden="true">i</span><p set:html={inlineCode(t(locale, section.note))} /></aside>}
-          </section>
-        ))}
+        <div class="article-body">
+          {page.sections.map((section) => (
+            <section id={section.id}>
+              <h2><a href={`#${section.id}`}>{t(locale, section.title)}</a></h2>
+              {section.paragraphs?.map((key) => <p set:html={inlineCode(t(locale, key))} />)}
+              {section.bullets && <ul>{section.bullets.map((key) => <li set:html={inlineCode(t(locale, key))} />)}</ul>}
+              {page.slug === "getting-started" && section.id === "install"
+                ? <InstallCommand locale={locale} />
+                : section.code && <CodeBlock code={section.code} locale={locale} />}
+              {section.note && <aside class="note"><span aria-hidden="true">i</span><p set:html={inlineCode(t(locale, section.note))} /></aside>}
+            </section>
+          ))}
+        </div>
       </div>
       <aside class="toc">
         <p>{t(locale, "ui.onThisPage")}</p>
