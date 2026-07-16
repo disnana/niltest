@@ -87,5 +87,7 @@ print(f"  if expect: 差分: {inline_diff_ns:.1f}ns / 回")
 print(f"  @docs 差分    : {declared_diff_ns:.1f}ns / 回")
 print()
 print("  -> どちらもデコレータのラッパーはありません。")
-print("  -> @docs APIは関数本体に if expect: も置かないため、呼び出し経路にniltest由来の分岐はありません。")
+print(
+    "  -> @docs APIは関数本体に if expect: も置かないため、呼び出し経路にniltest由来の分岐はありません。"
+)
 print("  -> 小さな正負の差分はCPU測定上の揺らぎです。ゼロコストの根拠は上の同一性assertです。")
