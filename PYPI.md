@@ -99,6 +99,45 @@ def fetch_user(user_id: int) -> dict[str, object]:
 Use `niltest inspect your_package.services` as a compact architecture map, or add
 `--json` to feed the same information to other tools.
 
+## Pytest integration and exception specifications
+
+Version 1.2 exposes each niltest case as an individual pytest item. The plugin is
+inert unless `--niltest` is present, so existing pytest behavior is unchanged.
+
+```bash
+pytest --niltest --niltest-module=your_package.specs
+pytest --niltest --junitxml=report.xml --cov=your_package
+```
+
+```toml
+[tool.pytest.ini_options]
+niltest_modules = ["your_package.specs"]
+```
+
+Use exactly one of `returns` or `raises`. `match` is a regular expression applied
+to the exception message. Exception cases validate the real implementation and
+never act as fixed mocks.
+
+```python
+@scenario("Withdraw funds")
+@docs(case(
+    "insufficient funds",
+    given={"balance": 100, "amount": 150},
+    raises=ValueError,
+    match="insufficient",
+))
+def withdraw(balance: int, amount: int) -> int:
+    if amount > balance:
+        raise ValueError("insufficient funds")
+    return balance - amount
+```
+
+Inspection reports are available as text, JSON, or portable Markdown:
+
+```bash
+niltest inspect your_package.specs --format markdown
+```
+
 ## Production path
 
 `NILTEST_MODE=production` is the safe default. Set `NILTEST_MODE=test` or `NILTEST_MODE=mock` before importing decorated modules when you want niltest's development features. In production mode, `@scenario` returns the original function without creating a wrapper. The explicit `if expect:` truth check remains; niltest documents this measurable cost instead of claiming absolute zero overhead.

@@ -5,7 +5,7 @@ import { t } from "@/locales";
 type Props = { code: string; locale: string };
 const { code, locale } = Astro.props;
 const first = code.trimStart().split("\n", 1)[0] ?? "";
-const lang = /^(pip |python |niltest |NILTEST_MODE=|\$env:|# (macOS|Windows))/.test(first) ? "shellscript" : "python";
+const lang = /^(pip |pytest |python |niltest |NILTEST_MODE=|\$env:|# (macOS|Windows))/.test(first) ? "shellscript" : "python";
 const highlighted = await codeToHtml(code, {
   lang,
   themes: { light: "github-light", dark: "github-dark" },

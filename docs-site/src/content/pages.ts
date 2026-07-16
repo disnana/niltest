@@ -123,8 +123,14 @@ pip3 install niltest` },
     lead: "test.lead",
     sections: [
       { id: "python", title: "test.python.title", code: "import niltest\n\nniltest.configure(mode=\"test\")  # @scenarioより前\nfrom your_package.shipping import shipping_fee\n\nresult = niltest.run_tests(shipping_fee)\nassert result.success\nprint(result.to_dict())" },
+      { id: "pytest", title: "test.pytest.title", paragraphs: ["test.pytest.p1", "test.pytest.p2"], code: `pytest --niltest --niltest-module=your_package.specs
+pytest --niltest --junitxml=report.xml --cov=your_package
+
+# pyproject.toml
+[tool.pytest.ini_options]
+niltest_modules = ["your_package.specs"]` },
       { id: "cli", title: "test.cli.title", paragraphs: ["test.cli.p1"], code: "niltest run your_package.specs\nniltest run your_package.specs --json" },
-      { id: "inspect", title: "test.inspect.title", paragraphs: ["test.inspect.p1"], code: "niltest inspect your_package.services\nniltest inspect your_package.services --json" },
+      { id: "inspect", title: "test.inspect.title", paragraphs: ["test.inspect.p1", "test.inspect.p2"], code: "niltest inspect your_package.services --format text\nniltest inspect your_package.services --format json\nniltest inspect your_package.services --format markdown" },
       { id: "exit", title: "test.exit.title", bullets: ["test.exit.b1", "test.exit.b2", "test.exit.b3"] },
     ],
   },
@@ -139,6 +145,12 @@ pip3 install niltest` },
       { id: "values", title: "expect.values.title", paragraphs: ["expect.values.p1"], code: "returns={\"id\": 1, \"name\": \"Alice\"}" },
       { id: "types", title: "expect.types.title", paragraphs: ["expect.types.p1"], code: "returns=UserData  # isinstanceで確認" },
       { id: "validators", title: "expect.validators.title", paragraphs: ["expect.validators.p1"], code: "returns=lambda result: result[\"count\"] > 0" },
+      { id: "exceptions", title: "expect.exceptions.title", paragraphs: ["expect.exceptions.p1", "expect.exceptions.p2"], code: `@docs(case(
+    "残高不足",
+    given={"balance": 100, "amount": 150},
+    raises=ValueError,
+    match="残高不足",
+))` },
       { id: "models", title: "expect.models.title", paragraphs: ["expect.models.p1"] },
       { id: "conforms", title: "expect.conforms.title", paragraphs: ["expect.conforms.p1"], code: "from niltest import conforms_to\n\nreturns=conforms_to(list[User])\nreturns=conforms_to(Annotated[int, Field(gt=0)])" },
       { id: "input-validation", title: "expect.inputs.title", paragraphs: ["expect.inputs.p1", "expect.inputs.p2"], code: `class Payload(BaseModel):
@@ -218,7 +230,7 @@ def shipping_fee(premium: bool) -> int:
     sections: [
       { id: "configure", title: "api.configure.title", code: "configure(mode=None, language=None)", paragraphs: ["api.configure.p1"] },
       { id: "scenario", title: "api.scenario.title", code: "@scenario(title)", paragraphs: ["api.scenario.p1"] },
-      { id: "case", title: "api.case.title", code: "expect.case(name, *, desc=\"\", given, returns)", paragraphs: ["api.case.p1"] },
+      { id: "case", title: "api.case.title", code: "case(name, *, given, returns=... | raises=..., match=None, desc=\"\")", paragraphs: ["api.case.p1"] },
       { id: "run", title: "api.run.title", code: "run_tests(*functions) -> RunResult", paragraphs: ["api.run.p1"] },
       { id: "conforms", title: "api.conforms.title", code: "conforms_to(type_hint, *, strict=False) -> TypeExpectation", paragraphs: ["api.conforms.p1"] },
       { id: "locale", title: "api.locale.title", code: "register_locale(locale, messages, *, overwrite=False)", paragraphs: ["api.locale.p1"] },

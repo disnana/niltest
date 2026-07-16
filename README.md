@@ -110,6 +110,40 @@ niltest inspect your_package.services --language ja
 niltest inspect your_package.services --json
 ```
 
+### pytest連携と例外仕様（v1.2）
+
+pytestを品質保証基盤として維持したまま、niltestの各ケースを個別のpytest itemとして実行できます。`--niltest`を付けない通常実行には介入しません。
+
+```bash
+pytest --niltest --niltest-module=your_package.specs
+pytest --niltest --junitxml=report.xml --cov=your_package
+```
+
+```toml
+[tool.pytest.ini_options]
+niltest_modules = ["your_package.specs"]
+```
+
+期待する例外とメッセージは`raises`と`match`で宣言します。`returns`と`raises`はどちらか一方だけを指定します。
+
+```python
+@scenario("出金")
+@docs(case(
+    "残高不足",
+    given={"balance": 100, "amount": 150},
+    raises=ValueError,
+    match="残高不足",
+))
+def withdraw(balance: int, amount: int) -> int:
+    if amount > balance:
+        raise ValueError("残高不足")
+    return balance - amount
+```
+
+```bash
+niltest inspect your_package.specs --format markdown
+```
+
 ### 呼び出し時コストをゼロにする宣言型API
 
 既存の `if expect:` はそのまま使えます。関数内の条件分岐も残したくない場合は、ケースを `@docs` で囲みます。
