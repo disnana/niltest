@@ -1,9 +1,20 @@
 from __future__ import annotations
 
+import io
 import json
 
 import niltest
-from niltest._cli import main
+from niltest._cli import _configure_utf8_stream, main
+
+
+def test_cli_reconfigures_legacy_windows_stream_to_utf8() -> None:
+    buffer = io.BytesIO()
+    stream = io.TextIOWrapper(buffer, encoding="cp1252")
+    _configure_utf8_stream(stream)
+    stream.write("日本語シナリオ")
+    stream.flush()
+    assert buffer.getvalue().decode("utf-8") == "日本語シナリオ"
+    stream.detach()
 
 
 def test_run_tests_returns_machine_readable_result():
