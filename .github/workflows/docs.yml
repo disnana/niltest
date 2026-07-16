@@ -32,6 +32,12 @@ jobs:
         working-directory: docs-site
       - run: bun run build
         working-directory: docs-site
+      - name: Verify Pages entrypoints and static assets
+        shell: bash
+        run: |
+          test -f docs-site/dist/index.html
+          test -f docs-site/dist/docs/index.html
+          test -d docs-site/dist/assets
       - uses: actions/upload-artifact@v7
         if: github.event_name != 'pull_request'
         with:

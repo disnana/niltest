@@ -7,6 +7,7 @@ export default defineConfig({
   trailingSlash: "always",
   build: {
     format: "directory",
+    assets: "assets",
     inlineStylesheets: "auto",
   },
   compressHTML: true,
