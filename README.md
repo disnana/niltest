@@ -1,4 +1,9 @@
 # niltest
+[![PyPI version](https://img.shields.io/pypi/v/niltest.svg)](https://pypi.org/project/niltest/)
+[![Python versions](https://img.shields.io/pypi/pyversions/niltest.svg)](https://pypi.org/project/niltest/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Downloads](https://static.pepy.tech/badge/niltest)](https://pepy.tech/project/niltest)
+[![Tests](https://github.com/disnana/niltest/actions/workflows/ci.yml/badge.svg)](https://github.com/disnana/niltest/actions/workflows/ci.yml)
 
 > Executable specifications, mocks, and lightweight tests—next to the Python function they describe.
 
