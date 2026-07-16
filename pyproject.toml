@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "niltest"
-version = "1.1.0"
+version = "1.2.0"
 description = "Executable specifications, mocks, and lightweight tests next to your Python code"
 readme = {file = "PYPI.md", content-type = "text/markdown"}
 license = "MIT"
@@ -34,6 +34,12 @@ Issues = "https://github.com/disnana/niltest/issues"
 
 [project.scripts]
 niltest = "niltest._cli:main"
+
+[project.entry-points.pytest11]
+niltest = "niltest_pytest"
+
+[tool.setuptools]
+py-modules = ["niltest_pytest"]
 
 [tool.setuptools.packages.find]
 include = ["niltest*", "examples*"]
