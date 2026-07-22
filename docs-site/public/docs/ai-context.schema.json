@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://niltest.disnana.com/docs/ai-context.schema.json",
+  "title": "niltest AI integration context",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "purpose",
+    "metadata",
+    "package",
+    "documentation",
+    "runtime_modes",
+    "minimal_complete_example",
+    "feature_selection",
+    "common_mistakes",
+    "public_api",
+    "cli",
+    "pytest"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri" },
+    "schema_version": { "type": "string" },
+    "purpose": { "type": "string" },
+    "metadata": {
+      "type": "object",
+      "required": ["package_version", "package_release_ref", "documentation_ref", "last_reviewed", "freshness_check"],
+      "properties": {
+        "package_version": { "type": "string" },
+        "package_release_ref": { "type": "string", "format": "uri" },
+        "documentation_ref": { "type": "string", "format": "uri" },
+        "last_reviewed": { "type": "string", "format": "date" },
+        "freshness_check": { "type": "string", "format": "uri" }
+      }
+    },
+    "minimal_complete_example": {
+      "type": "object",
+      "required": ["language", "code"],
+      "properties": {
+        "language": { "const": "python" },
+        "code": { "type": "string" }
+      }
+    },
+    "feature_selection": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["need", "use", "avoid_when"],
+        "properties": {
+          "need": { "type": "string" },
+          "use": { "type": "string" },
+          "avoid_when": { "type": "string" }
+        }
+      }
+    },
+    "common_mistakes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["mistake", "why_it_fails", "correct_action"],
+        "properties": {
+          "mistake": { "type": "string" },
+          "why_it_fails": { "type": "string" },
+          "correct_action": { "type": "string" }
+        }
+      }
+    }
+  }
+}

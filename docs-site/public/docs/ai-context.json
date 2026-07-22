@@ -1,6 +1,14 @@
 {
-  "schema_version": "1.0",
+  "$schema": "https://niltest.disnana.com/docs/ai-context.schema.json",
+  "schema_version": "1.1",
   "purpose": "Machine-readable integration context for AI systems using niltest. Treat this document as an index; linked documentation and source code are authoritative.",
+  "metadata": {
+    "package_version": "1.2.1",
+    "package_release_ref": "https://github.com/disnana/niltest/tree/v1.2.1",
+    "documentation_ref": "https://github.com/disnana/niltest/tree/main",
+    "last_reviewed": "2026-07-22",
+    "freshness_check": "https://github.com/disnana/niltest/commits/main"
+  },
   "package": {
     "name": "niltest",
     "language": "Python",
@@ -36,6 +44,54 @@
     },
     "environment_variable": "NILTEST_MODE=production|test|mock"
   },
+  "minimal_complete_example": {
+    "language": "python",
+    "code": "from niltest import Mode, configure, expect, run_tests, scenario\n\nconfigure(mode=Mode.TEST)  # Set before importing decorated modules.\n\n@scenario(\"Shipping fee\")\ndef shipping_fee(subtotal: int, premium: bool = False) -> int:\n    if expect:\n        expect.case(\n            \"premium ships free\",\n            given={\"subtotal\": 1_000, \"premium\": True},\n            returns=0,\n        )\n    return 0 if premium or subtotal >= 5_000 else 500\n\nassert run_tests(shipping_fee).success"
+  },
+  "feature_selection": [
+    {
+      "need": "Keep a few small, explanatory examples beside a pure or mostly pure function.",
+      "use": "Inline if expect: expect.case(...)",
+      "avoid_when": "The function is already crowded or the specification needs to stay outside the implementation body."
+    },
+    {
+      "need": "Keep cases outside the function and remove the inline expect branch from the source.",
+      "use": "@scenario(...) with @docs(case(...))",
+      "avoid_when": "You want examples immediately visible inside a short function body."
+    },
+    {
+      "need": "Integrate representative cases with an established test suite, JUnit XML, or coverage.",
+      "use": "pytest --niltest with --niltest-module or niltest_modules configuration",
+      "avoid_when": "You only need a quick standalone check; use niltest run instead."
+    },
+    {
+      "need": "Understand a module's signatures, registered cases, input diagnostics, and mockability without executing cases.",
+      "use": "niltest inspect importable.module.path",
+      "avoid_when": "You need to verify implementation behavior; use niltest run or pytest."
+    }
+  ],
+  "common_mistakes": [
+    {
+      "mistake": "Configuring test or mock after importing a module containing @scenario.",
+      "why_it_fails": "Python evaluates decorators while the module loads, so production behavior may already be selected.",
+      "correct_action": "Call configure(mode=Mode.TEST or Mode.MOCK) before the import, or set NILTEST_MODE before Python starts."
+    },
+    {
+      "mistake": "Expecting a mock result for an input that has no exactly matching given case.",
+      "why_it_fails": "Mock mode deliberately falls through to the real implementation when no fixed case matches.",
+      "correct_action": "Declare the exact case or make the real implementation safe for the unmatched input."
+    },
+    {
+      "mistake": "Using a raises case as a development mock.",
+      "why_it_fails": "Exception cases are verification-only and never act as fixed mocks.",
+      "correct_action": "Use a concrete returns case for a mockable response; keep raises for real-implementation verification."
+    },
+    {
+      "mistake": "Passing a filesystem path such as src/myapp/specs.py to inspect.",
+      "why_it_fails": "inspect accepts Python import paths and imports the module.",
+      "correct_action": "Use myapp.specs after making the package importable."
+    }
+  ],
   "public_api": {
     "symbols": [
       "Mode",
