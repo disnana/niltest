@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Machine-readable integration context for AI systems using niltest. Treat this document as an index; linked documentation and source code are authoritative.",
+  "package": {
+    "name": "niltest",
+    "language": "Python",
+    "requires_python": ">=3.10",
+    "license": "MIT",
+    "description": "Executable specifications, fixed development mocks, and lightweight checks next to Python functions.",
+    "repository": "https://github.com/disnana/niltest",
+    "pypi": "https://pypi.org/project/niltest/"
+  },
+  "documentation": {
+    "english": "https://niltest.disnana.com/docs/en/",
+    "japanese": "https://niltest.disnana.com/docs/",
+    "readme_english": "https://github.com/disnana/niltest/blob/main/README.md",
+    "readme_japanese": "https://github.com/disnana/niltest/blob/main/README.ja.md",
+    "api_english": "https://niltest.disnana.com/docs/en/api/",
+    "api_japanese": "https://niltest.disnana.com/docs/api/"
+  },
+  "installation": {
+    "default": "pip install niltest",
+    "windows": "python -m pip install niltest",
+    "ubuntu_macos": "python3 -m pip install niltest",
+    "pydantic_extra": "pip install \"niltest[pydantic]\""
+  },
+  "runtime_modes": {
+    "default": "production",
+    "recommended_python_api": "configure(mode=Mode.TEST)",
+    "supported_string_api": "configure(mode=\"test\")",
+    "must_configure_before": "Importing a module containing @scenario when selecting test or mock.",
+    "modes": {
+      "production": "Safe default. @scenario returns the original function without a niltest runtime wrapper.",
+      "test": "Execute declared cases against the real implementation.",
+      "mock": "Return fixed values for calls whose arguments exactly match a declared case."
+    },
+    "environment_variable": "NILTEST_MODE=production|test|mock"
+  },
+  "public_api": {
+    "symbols": [
+      "Mode",
+      "configure",
+      "scenario",
+      "expect",
+      "case",
+      "docs",
+      "run_tests",
+      "conforms_to",
+      "register_locale"
+    ],
+    "case_contract": "Specify exactly one of returns or raises. match is a regular expression used only with raises.",
+    "pydantic": "conforms_to() and case execution can validate and normalize Pydantic-compatible typed inputs when the optional extra is installed. Normal application calls are not transformed."
+  },
+  "cli": {
+    "run": [
+      "niltest run your_package.specs --language en",
+      "niltest run your_package.specs --json"
+    ],
+    "inspect": {
+      "contract": "Pass an importable Python module path. The command imports the module and lists registered scenarios; it does not execute specification cases.",
+      "commands": [
+        "niltest inspect your_package.services",
+        "niltest inspect your_package.services --format json",
+        "niltest inspect your_package.services --format markdown"
+      ],
+      "formats": {
+        "text": "Terminal-oriented summary.",
+        "json": "Structured output for tools and CI. --json is a compatibility alias.",
+        "markdown": "Review- and document-oriented case table."
+      }
+    },
+    "exit_codes": {
+      "0": "Success.",
+      "1": "One or more specifications failed.",
+      "2": "Usage, import, or target-module error."
+    }
+  },
+  "pytest": {
+    "activation": "pytest --niltest --niltest-module=your_package.specs",
+    "configuration": "[tool.pytest.ini_options] niltest_modules = [\"your_package.specs\"]",
+    "behavior_without_flag": "The plugin is inert: it does not change modes or import configured modules.",
+    "integration": [
+      "Each niltest case becomes an independent pytest item.",
+      "Standard reports, exit codes, JUnit XML, and coverage are preserved."
+    ]
+  },
+  "examples": {
+    "inspect_target": "https://github.com/disnana/niltest/blob/main/examples/08_inspect_report.py",
+    "inspect_result_english": "https://github.com/disnana/niltest/blob/main/examples/08_inspect_report.result.md",
+    "inspect_result_japanese": "https://github.com/disnana/niltest/blob/main/examples/08_inspect_report.result.ja.md"
+  },
+  "localization": {
+    "built_in": ["ja", "en"],
+    "fallback": "en",
+    "extension_api": "register_locale()"
+  },
+  "supply_chain": {
+    "pypi": "Trusted Publishing with Sigstore attestations.",
+    "github_releases": "Build-provenance attestations and distribution assets.",
+    "slsa": "SLSA Build Level 3 provenance."
+  }
+}
