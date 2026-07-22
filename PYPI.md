@@ -3,6 +3,7 @@
 **Executable specifications, fixed development mocks, and lightweight checks—next to the Python function they describe.**
 
 [日本語](#日本語) · [Documentation](https://niltest.disnana.com/docs/) · [GitHub](https://github.com/disnana/niltest/) · [Issues](https://github.com/disnana/niltest/issues)
+<!-- AI integration context: https://niltest.disnana.com/docs/ai-context.json -->
 
 niltest lets one `expect.case()` definition serve three purposes:
 

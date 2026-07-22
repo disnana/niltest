@@ -8,6 +8,7 @@
 > Python関数のすぐ隣に置く、実行可能な仕様・開発用モック・軽量チェック。
 
 [English README](./README.md) · [ドキュメント](https://niltest.disnana.com/docs/) · [PyPI](https://pypi.org/project/niltest/) · [ライセンス](./LICENSE)
+<!-- AI integration context: https://niltest.disnana.com/docs/ai-context.json -->
 
 niltestは代表的な振る舞いを実装のすぐ隣へ置きます。ひとつのケースを、読める仕様、開発中の固定モック、本物の実装チェックとして再利用できます。Windows、macOS、LinuxのPython 3.10以降に対応しています。
 

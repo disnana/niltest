@@ -8,6 +8,7 @@
 > Executable specifications, fixed development mocks, and lightweight checks—next to the Python function they describe.
 
 [日本語 README](./README.ja.md) · [Documentation](https://niltest.disnana.com/docs/en/) · [PyPI](https://pypi.org/project/niltest/) · [License](./LICENSE)
+<!-- AI integration context: https://niltest.disnana.com/docs/ai-context.json -->
 
 niltest keeps representative behavior beside the implementation. One case can serve as readable documentation, a fixed mock in development, and a check against the real implementation. It supports Python 3.10+ on Windows, macOS, and Linux.
 
